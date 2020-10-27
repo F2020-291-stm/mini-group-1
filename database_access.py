@@ -19,9 +19,9 @@ class Database:
             self.create_db()
 
     def create_db(self):
-        sql_file = open('db/prj-tables.sql')
-        sql_as_string = sql_file.read()
-        self.cursor.executescript(sql_as_string)
+        with open('db/prj-tables.sql') as sql_file:
+            sql_as_string = sql_file.read()
+            self.cursor.executescript(sql_as_string)
         
     def sanitize(self, value):
         """
@@ -68,3 +68,11 @@ class Database:
             print("Error: Enter UNIQUE User ID")
             done = False
         return done
+    
+    def post_questions(self, user, title, body):
+        with open('queries/post_question.sql') as sql_file:
+            sql_as_string = sql_file.read()
+            self.cursor.execute(
+            sql_as_string,
+            (date.today(), title, body, user)
+        )

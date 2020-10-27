@@ -37,12 +37,11 @@ create table ubadges (
   foreign key (bname) references badges
 );
 create table posts (
-  pid		char(4),
+  pid		integer primary key,
   pdate		date,
   title		text,
   body		text,
   poster	char(4),
-  primary key (pid),
   foreign key (poster) references users
 );
 create table tags (

@@ -66,6 +66,33 @@ _QUIT_FORM = [
     }
 ]
 
+_MASTER_MENU =[
+    {
+        'type' : 'list',
+        'name' : 'master menu',
+        'message' : 'What do you want to do?',
+        'choices': [
+            'Post a question',
+            'Search for posts',
+            'Logout',
+            'Quit'
+        ]
+    }
+]
+
+_POST_QUESTION = [
+    {
+        'type' : 'input',
+        'name' : 'title',
+        'message' : 'title'
+    },    
+    {
+        'type' : 'input',
+        'name' : 'body',
+        'message' : 'body'
+    }
+]
+
 def login():
     """
     docstring
@@ -93,3 +120,9 @@ def database_select():
     docstring
     """
     return prompt(_DATABASE_FORM)['database']
+
+def master_menu_select():
+    return prompt(_MASTER_MENU)
+
+def post_question():
+    return prompt(_POST_QUESTION)

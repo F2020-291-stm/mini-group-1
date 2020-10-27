@@ -9,12 +9,6 @@ if __name__ == "__main__":
     database.init_db('db/m-prj1.db')
     session = False
     login_screen(session, database)
-    
-  
-# -*- coding: utf-8 -*-
-"""
-* password question example
-"""
 
 
 

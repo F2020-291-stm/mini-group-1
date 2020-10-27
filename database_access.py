@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import date
+import os
 
 class Database:
     db = None
@@ -9,22 +10,32 @@ class Database:
         """
         Initialize the database connection
         """
-        self.db = sqlite3.connect(path)
-        self.cursor = db.cursor()
+        exists = True
+        if not os.path.exists(path):
+            exists = False
+        self.db = sqlite3.connect(path, isolation_level=None)
+        self.cursor = self.db.cursor()
+        if not exists:
+            self.create_db()
 
+    def create_db(self):
+        sql_file = open('db/prj-tables.sql')
+        sql_as_string = sql_file.read()
+        self.cursor.executescript(sql_as_string)
+        
     def sanitize(self, value):
         """
         Sanitizes values for database usage
         """
         pass
 
-    def verfiy_login(self, username, password):
+    def verify_login(self, username, password):
         """
         Verifies a username and password
         """
         self.cursor.execute(
             '''
-            SELECT COUNT(*) > 0
+            SELECT *
             FROM users
             WHERE uid = ?
             AND pwd = ?
@@ -45,9 +56,15 @@ class Database:
         return self.cursor.fetchone()
 
     def register(self, username, password, name, city):
-        self.cursor.execute(
-            '''
-            INSERT INTO users VALUES (?, ?, ?, ?, ?)
-            ''',
-            (username, name, password, city, date.today())
-        )
+        done = True
+        try:
+            self.cursor.execute(
+                '''
+                INSERT INTO users VALUES (?, ?, ?, ?, ?)
+                ''',
+                (username, name, password, city, date.today())
+            )
+        except sqlite3.IntegrityError:
+            print("Error: Enter UNIQUE User ID")
+            done = False
+        return done

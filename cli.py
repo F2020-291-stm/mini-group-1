@@ -12,7 +12,7 @@ _RETURNING_USER_FORM = [
     {
         'type': 'confirm',
         'name': 'auth_type',
-        'message': 'Are you a returning user',
+        'message': 'Are you a returning user?',
         'default': True
     }
 ]
@@ -24,7 +24,7 @@ _LOGIN_FORM = [
         'message': 'Username'
     },
     {
-        'type': 'input',
+        'type': 'password',
         'name': 'password',
         'message': 'Password'
     }
@@ -57,6 +57,15 @@ _REGISTER_INFO_FORM = [
     }
 ]
 
+_QUIT_FORM = [
+    {
+        'type': 'confirm',
+        'name': 'quit_or_continue',
+        'message': 'Do you want to quit?',
+        'default' : False
+    }
+]
+
 def login():
     """
     docstring
@@ -74,7 +83,10 @@ def returning_user():
     """
     docstring
     """
-    return prompt(_AUTH_FORM)['auth_type']
+    return prompt(_RETURNING_USER_FORM)['auth_type']
+
+def quit_login():
+    return prompt(_QUIT_FORM)['quit_or_continue']
 
 def database_select():
     """

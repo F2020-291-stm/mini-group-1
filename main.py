@@ -9,7 +9,7 @@ if __name__ == "__main__":
     #dbpath = cli.database_select()
     database.init_db('db/prj1.db')
     session = False
-    login = True 
+    login = True
     while login:
         user = login_screen(database)
         login = master_menu_screen(user, database)

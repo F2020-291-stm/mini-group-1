@@ -76,3 +76,13 @@ class Database:
             sql_as_string,
             (date.today(), title, body, user)
         )
+    
+    def search_posts(self, keyword):
+        with open('queries/search_posts.sql') as sql_file:
+            sql_as_string = sql_file.read()
+            self.cursor.execute(
+            sql_as_string,
+            (keyword, keyword, keyword) #keyword
+            )
+        return self.cursor.fetchall()
+        

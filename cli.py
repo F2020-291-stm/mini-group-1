@@ -93,6 +93,23 @@ _POST_QUESTION = [
     }
 ]
 
+_KEYWORD_FORM = [
+    {
+        'type' : 'input',
+        'name' : 'keywords',
+        'message' : 'keywords'
+    }
+]
+
+_SEARCH_FORM = [
+    {
+        'type' : 'list',
+        'name' : 'search menu',
+        'message' : 'Select a post',
+        'choices' : None
+    }
+]
+
 def login():
     """
     docstring
@@ -126,3 +143,12 @@ def master_menu_select():
 
 def post_question():
     return prompt(_POST_QUESTION)
+
+def get_keyword():
+    return prompt(_KEYWORD_FORM)
+
+def put_search_list(posts, empty):
+    _SEARCH_FORM[0]['choices'] = [str(post) for post in posts]
+    if not empty:
+        _SEARCH_FORM[0]['choices'] += ['Next Page']
+    return prompt(_SEARCH_FORM)

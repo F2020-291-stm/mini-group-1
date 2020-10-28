@@ -3,14 +3,13 @@ import database_access
 import sys
 
 def login_screen(database):
-    done = False
-    while not done:
+    while True:
         if (cli.returning_user()):
             credentials = cli.login()
-            session = False
+            done = False
             if database.verify_login(credentials[0], credentials[1]) is not None:
-                session = True
-            if session:
+                done = True
+            if done:
                 print("Logged in successfully")
                 return credentials[0]
             else:

@@ -34,7 +34,7 @@ def search_questions(user, database):
                 ordered_posts.add_task(post, ordered_posts.get_priority(post) + 1)
             else:
                 ordered_posts.add_task(post)
-    ans = None
+    ans = -10
     while ans is None or ans < 0:
         ans = generate_search_list(ordered_posts)
         if ans > 0:

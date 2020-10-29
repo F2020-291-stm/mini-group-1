@@ -3,14 +3,23 @@ import database_access
 import sys
 from util import PQ
 from itertools import count
+from action_screen import action_screen
 #from copy import deepcopy
 
 def master_menu_screen(user, database):
     choice = cli.master_menu_select()
     if choice['master menu'] == 'Post a question':
         post_question_screen(user, database)
+        return True
     elif choice['master menu'] == 'Search for posts':
-        ans = search_questions(user, database)
+        pid = search_questions(user, database)
+        if pid is not None:
+            pid = str(pid)
+            logged = action_screen(user, database, pid)
+        else:
+            print('No matches')
+            logged = True
+        return logged
     elif choice['master menu'] == 'Logout':
         return False
     else:
@@ -37,9 +46,11 @@ def search_questions(user, database):
     ans = -10
     while ans is None or ans < 0:
         ans = generate_search_list(ordered_posts)
-        if ans > 0:
+        if ans is not None and ans > 0:
             return ans
-                    
+        elif ans is not None and ans == -2:
+            return None
+            
 def generate_search_list(ordered_posts):  
     posts = []
     counter = count()
@@ -47,15 +58,17 @@ def generate_search_list(ordered_posts):
         try:
             post = ordered_posts.pop_task()
             posts.append(post)
-        except KeyError: 
+        except KeyError:
             break
     if len(posts) > 0:
         choice = cli.put_search_list(posts, ordered_posts.is_empty())['search menu']
         if choice != 'Next Page':
             choice_list = choice.split(',')
-            pid = int(choice_list[0][1:])
+            pid = int(choice_list[0][2:].split('\'')[0])
             return pid
         else:
             return -1
+    else:
+        return -2
     
     

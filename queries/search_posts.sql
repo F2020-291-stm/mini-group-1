@@ -3,12 +3,12 @@ from(select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.
     from(
         select pid
         from posts
-        where (instr(title,?) > 0
-        or instr(body,?) > 0)
+        where (instrnocase(title,?) > 0
+        or instrnocase(body,?) > 0)
         UNION
         select pid
         from tags
-        where instr(tag,?) > 0) s,
+        where instrnocase(tag,?) > 0) s,
     posts p
     left join votes v on p.pid = v.pid
     where p.pid = s.pid

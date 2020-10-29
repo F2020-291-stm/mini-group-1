@@ -80,7 +80,7 @@ _MASTER_MENU =[
     }
 ]
 
-_POST_QUESTION = [
+_QUESTION_FORM = [
     {
         'type' : 'input',
         'name' : 'title',
@@ -107,6 +107,37 @@ _SEARCH_FORM = [
         'name' : 'search menu',
         'message' : 'Select a post',
         'choices' : None
+    }
+]
+
+_ANSWER_FORM = [
+    {
+        'type' : 'input',
+        'name' : 'title',
+        'message' : 'title'
+    },
+    {
+        'type' : 'input',
+        'name' : 'body',
+        'message' : 'body'
+    }
+]
+
+_ACTION_MENU = [
+    {
+        'type' : 'list',
+        'name' : 'action menu',
+        'message' : 'What do you want to do?',
+        'choices': [
+            'Post an answer',
+            'Vote on post',
+            'Accept the answer',
+            'Give a badge',
+            'Add a tag',
+            'Edit the post',
+            'Logout',
+            'Quit'
+        ]
     }
 ]
 
@@ -142,7 +173,7 @@ def master_menu_select():
     return prompt(_MASTER_MENU)
 
 def post_question():
-    return prompt(_POST_QUESTION)
+    return prompt(_QUESTION_FORM)
 
 def get_keyword():
     return prompt(_KEYWORD_FORM)
@@ -152,3 +183,10 @@ def put_search_list(posts, empty):
     if not empty:
         _SEARCH_FORM[0]['choices'] += ['Next Page']
     return prompt(_SEARCH_FORM)
+
+def action_menu_select():
+    return prompt(_ACTION_MENU)
+
+def post_answer():
+    return prompt(_ANSWER_FORM)
+

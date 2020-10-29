@@ -1,4 +1,4 @@
-insert into posts(pdate, title, body, poster)
+insert into posts(pid, pdate, title, body, poster)
 values(
-    ?,?,?,?
+    ?,?,?,?,?
 );

@@ -5,7 +5,7 @@ from functools import reduce
 
 class PQ():
     def __init__(self):
-        self.heap = []                   # list of entries arranged in a heap
+        self.heap = []                       # list of entries arranged in a heap
         self.entry_finder = {}               # mapping of tasks to entries
         self.REMOVED = '<removed-task>'      # placeholder for a removed task
         self.counter = itertools.count()     # unique sequence count

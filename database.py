@@ -246,7 +246,8 @@ class Database:
             '''
             SELECT *
             FROM tags
-            WHERE INSTRNOCASE(tag, ?)
+            WHERE tag = ?
+            COLLATE NOCASE
             ''',
             (tag)
         )

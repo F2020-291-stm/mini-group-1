@@ -30,15 +30,12 @@ _LOGIN_FORM = [
     }
 ]
 
-_REGISTER_USERNAME_FORM = [
+_REGISTER_INFO_FORM = [
     {
         'type': 'input',
         'name': 'username',
         'message': 'Username'
-    }
-]
-
-_REGISTER_INFO_FORM = [
+    },
     {
         'type': 'password',
         'name': 'password',
@@ -80,6 +77,15 @@ _MASTER_MENU =[
     }
 ]
 
+_FORCE_MARK_ANSWER_FORM = [
+    {
+        'type': 'confirm',
+        'name': 'force_overwrite',
+        'message': 'Question already has an accepted answer, do you want to overwrite?',
+        'default' : False
+    }
+]
+
 _QUESTION_FORM = [
     {
         'type' : 'input',
@@ -97,7 +103,7 @@ _KEYWORD_FORM = [
     {
         'type' : 'input',
         'name' : 'keywords',
-        'message' : 'keywords'
+        'message' : 'Enter Search Keywords seperated by \';\'\n'
     }
 ]
 
@@ -132,11 +138,7 @@ _ACTION_MENU = [
             'Post an answer',
             'Vote on post',
             'Accept the answer',
-            'Give a badge',
-            'Add a tag',
-            'Edit the post',
-            'Logout',
-            'Quit'
+            
         ]
     }
 ]
@@ -147,9 +149,6 @@ def login():
     """
     response = prompt(_LOGIN_FORM)
     return (response['username'], response['password'])
-
-def register_username():
-    return prompt(_REGISTER_USERNAME_FORM)['username']
 
 def register_info():
     return prompt(_REGISTER_INFO_FORM)
@@ -162,6 +161,9 @@ def returning_user():
 
 def quit_login():
     return prompt(_QUIT_FORM)['quit_or_continue']
+
+def force_mark_answer():
+    return prompt(_FORCE_MARK_ANSWER_FORM)['force']
 
 def database_select():
     """
@@ -184,8 +186,39 @@ def put_search_list(posts, empty):
         _SEARCH_FORM[0]['choices'] += ['Next Page']
     return prompt(_SEARCH_FORM)
 
-def action_menu_select():
-    return prompt(_ACTION_MENU)
+def action_menu_select(show_priviledged_actions, show_answer_actions):
+    # Cannot store this as a "constant" as we edit it here
+    menu = {
+        'type' : 'list',
+        'name' : 'action menu',
+        'message' : 'What do you want to do?',
+        'choices': [
+            'Post an answer',
+            'Vote on post'
+        ]
+    }
+    if show_priviledged_actions:
+        if show_answer_actions:
+            menu['choices'].append('Mark as accepted answer')
+
+        menu['choices'].extend(
+            [
+                'Give a badge',
+                'Add a tag',
+                'Edit the post'
+            ]
+        )
+    
+    return prompt([menu])
+
+def choose_badge(badge_list):
+    badge_menu = {
+        'type' : 'list',
+        'name' : 'badge name',
+        'message' : 'Give what badge?',
+        'choices': badge_list
+    }
+    return prompt([badge_menu]["badge name"])
 
 def post_answer():
     return prompt(_ANSWER_FORM)

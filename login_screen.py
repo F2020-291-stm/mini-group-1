@@ -1,27 +1,28 @@
 import cli
-import database_access
+import database
 import sys
 
 def login_screen(database):
     while True:
+        # Check if the person logging in already has an account
         if (cli.returning_user()):
+            # Ask for creditials and login
             credentials = cli.login()
-            done = False
-            if database.verify_login(credentials[0], credentials[1]) is not None:
-                done = True
-            if done:
+            session = database.open_session(credentials[0], credentials[1])
+            if session is not None:
                 print("Logged in successfully")
-                return credentials[0]
+                return session
             else:
                 print("Invalid Username or Password")
                 if(cli.quit_login()):
                     sys.exit(0)
         else:
-            username = cli.register_username()
+            # Register 
             info = cli.register_info()
-            if database.register(username, info['password'], info['name'], info['city']):
+            session = database.register(info['username'], info['password'], info['name'], info['city'])
+            if session is not None:
                 print("Registered successfully")
-                return username
+                return session
             else:
                 if(cli.quit_login()):
                     sys.exit(0)

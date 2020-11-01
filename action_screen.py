@@ -1,37 +1,44 @@
 import cli
-from database_access import Database
+from database import Database, UserSession
 import sys
 
-def action_screen(user, database, pid):
-    option = cli.action_menu_select()['action menu']
+def action_screen(session, database, pid):
+    option = cli.action_menu_select(session.is_priviledged())['action menu']
+
     if option == 'Post an answer':
-        post_answer(pid, user, database)
-        return True
+        post_answer(pid, session, database)
     elif option == 'Vote on post':
-        vote_post(pid, user, database)
-        return True
-    elif option == 'Accept the answer':
-        return True
+        vote_post(pid, session, database)
+    elif option == 'Mark as accepted answer':
+        mark_accepted_answer(pid, database)
     elif option == 'Give a badge':
-        return True
+        give_badge(pid, database)
     elif option == 'Add a tag':
-        return True
+        pass
     elif option == 'Edit the post':
-        return True
-    elif option == 'Logout':
-        return False
-    else:
-        sys.exit(0)
-    
+        pass
 
-def post_answer (qid, user, database):
+def post_answer(qid, session, database):
     answer = cli.post_answer()
-    database.post_answers(user, answer['title'], answer ['body'], qid)
+    database.post_answers(session, answer['title'], answer ['body'], qid)
 
-def vote_post (pid, user, database):
-    voted = database.vote_post(user, pid)
+def vote_post(pid, session, database):
+    voted = database.vote_post(session, pid)
     if voted:    
         print('Cannot Vote : Already Voted on Post')
     else:
         print('Vote Recorded')
+
+def mark_accepted_answer(pid, database):
+    if not database.mark_accepted_answer(pid):
+        if cli.force_mark_answer():
+            database.mark_accepted_answer(pid, force=True)
+
+def give_badge(pid, database):
+    badge_names = database.get_badge_list()
+    chosen_name = cli.choose_badge(badge_names)
+    database.give_badge(pid, chosen_name)
+
+    
+
     

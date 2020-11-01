@@ -1,36 +1,32 @@
 import cli
-import database_access
+import database
 import sys
 from util import PQ
 from itertools import count
 from action_screen import action_screen
-#from copy import deepcopy
 
-def master_menu_screen(user, database):
+def master_menu_screen(session, database):
     choice = cli.master_menu_select()
     if choice['master menu'] == 'Post a question':
-        post_question_screen(user, database)
-        return True
+        post_question_screen(session, database)
     elif choice['master menu'] == 'Search for posts':
-        pid = search_questions(user, database)
+        pid = search_questions(database)
         if pid is not None:
             pid = str(pid)
-            logged = action_screen(user, database, pid)
+            action_screen(session, database, pid)
         else:
             print('No matches')
-            logged = True
-        return logged
     elif choice['master menu'] == 'Logout':
-        return False
+        session.logout()
     else:
         sys.exit(0)
-        
-def post_question_screen(user, database):
+
+def post_question_screen(session, database):
     print("\nEnter your question\n")
     question = cli.post_question()
-    database.post_questions(user, question['title'], question['body'])
+    database.post_questions(session.get_uid(), question['title'], question['body'])
     
-def search_questions(user, database):
+def search_questions(database):
     print("\nSearching the database....\n")
     print("Enter Search Keywords seperated by \';\'\n")
     keywords = cli.get_keyword()['keywords']

@@ -200,7 +200,6 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
     if show_priviledged_actions:
         if show_answer_actions:
             menu['choices'].append('Mark as accepted answer')
-
         menu['choices'].extend(
             [
                 'Give a badge',
@@ -212,13 +211,15 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
     return prompt([menu])
 
 def choose_badge(badge_list):
-    badge_menu = {
+    badge_menu =[ 
+    {
         'type' : 'list',
         'name' : 'badge name',
         'message' : 'Give what badge?',
         'choices': badge_list
     }
-    return prompt([badge_menu]["badge name"])
+    ]
+    return prompt(badge_menu)["badge name"]
 
 def post_answer():
     return prompt(_ANSWER_FORM)

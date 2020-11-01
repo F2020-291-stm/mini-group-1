@@ -245,7 +245,7 @@ class UserSession:
         return self.active
 
     def is_priviledged(self):
-        return self.privildeged
+        return self.privileged
 
     def get_uid(self):
         return self.uid

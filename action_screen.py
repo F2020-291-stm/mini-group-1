@@ -3,8 +3,7 @@ from database import Database, UserSession
 import sys
 
 def action_screen(session, database, pid):
-    option = cli.action_menu_select(session.is_priviledged())['action menu']
-
+    option = cli.action_menu_select(session.is_priviledged(), True)['action menu']
     if option == 'Post an answer':
         post_answer(pid, session, database)
     elif option == 'Vote on post':

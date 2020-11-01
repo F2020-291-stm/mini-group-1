@@ -74,7 +74,7 @@ _QUIT_FORM = [
 _MASTER_MENU =[
     {
         'type' : 'list',
-        'name' : 'master menu',
+        'name' : 'action',
         'message' : 'What do you want to do?',
         'choices': [
             'Post a question',
@@ -133,7 +133,7 @@ _KEYWORD_FORM = [
 _SEARCH_FORM = [
     {
         'type' : 'list',
-        'name' : 'search menu',
+        'name' : 'post',
         'message' : 'Select a post',
         'choices' : None
     }
@@ -142,7 +142,7 @@ _SEARCH_FORM = [
 _ACTION_MENU = [
     {
         'type' : 'list',
-        'name' : 'action menu',
+        'name' : 'action',
         'message' : 'What do you want to do?',
         'choices': [
             'Post an answer',
@@ -182,7 +182,7 @@ def database_select():
     return prompt(_DATABASE_FORM)['database']
 
 def master_menu_select():
-    return prompt(_MASTER_MENU)
+    return prompt(_MASTER_MENU)['action']
 
 def write_post():
     return prompt(_POST_FORM)
@@ -199,13 +199,13 @@ def put_search_list(posts, empty):
     _SEARCH_FORM[0]['choices'] = [str(post) for post in posts]
     if not empty:
         _SEARCH_FORM[0]['choices'] += ['Next Page']
-    return prompt(_SEARCH_FORM)
+    return prompt(_SEARCH_FORM)['post']
 
 def action_menu_select(show_priviledged_actions, show_answer_actions):
     # Cannot store this as a "constant" as we edit it here
     menu = {
         'type' : 'list',
-        'name' : 'action menu',
+        'name' : 'action',
         'message' : 'What do you want to do?',
         'choices': [
             'Upvote'
@@ -227,16 +227,16 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
 
     menu['choices'].append("Return")
     
-    return prompt([menu])
+    return prompt([menu])['action']
 
 def choose_badge(badge_list):
     badge_menu = {
         'type' : 'list',
-        'name' : 'badge name',
+        'name' : 'badge',
         'message' : 'Give what badge?',
         'choices': badge_list
     }
-    return prompt([badge_menu])["badge name"]
+    return prompt([badge_menu])["badge"]
 
 def request_tag():
-    return prompt(_TAG_FORM['tag'])
+    return prompt(_TAG_FORM)['tag']

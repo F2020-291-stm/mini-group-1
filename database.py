@@ -49,14 +49,15 @@ class Database:
         )
         if self.cursor.fetchone() is not None:
             self.cursor.execute(
-            '''
-            SELECT *
-            FROM privileged
-            WHERE uid = ?
-            ''',
-            (username,)
+                '''
+                SELECT *
+                FROM privileged
+                WHERE uid = ?
+                ''',
+                (username,)
             )
-            session = UserSession(username, priviledged=self.cursor.fetchone() is not None)
+            val = self.cursor.fetchone()
+            session = UserSession(username, privileged=val is not None)
             session._activate()
             return session
 
@@ -100,7 +101,7 @@ class Database:
             insert into questions(pid)
             values (?)
             ''', 
-            (pid)
+            (pid,)
         )
 
     def get_post(self, pid):
@@ -219,7 +220,10 @@ class Database:
             FROM badges
             '''
         )
-        return self.cursor.fetchall()
+        badges = []
+        for entry in self.cursor.fetchall():
+            badges.append(entry[0])
+        return badges
 
     def give_badge(self, pid, bname):
         try:
@@ -269,10 +273,10 @@ class Database:
 
 class UserSession:
 
-    def __init__(self, uid, priviledged = False):
+    def __init__(self, uid, privileged = False):
         self.uid = uid
         self.active = False
-        self.priviledged = priviledged
+        self.privileged = privileged
 
     def _activate(self):
         self.active = True
@@ -283,8 +287,8 @@ class UserSession:
     def is_active(self):
         return self.active
 
-    def is_priviledged(self):
-        return self.priviledged
+    def is_privileged(self):
+        return self.privileged
 
     def get_uid(self):
         return self.uid

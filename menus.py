@@ -6,7 +6,7 @@ from itertools import count
 
 # SUBMENU
 def handle_submenu(session, database, pid):
-    option = cli.action_menu_select(session.is_priviledged(), False)['action menu']
+    option = cli.action_menu_select(session.is_privileged(), False)
 
     if option == 'Post an answer':
         post_answer(pid, session, database)
@@ -27,7 +27,7 @@ def post_answer(qid, session, database):
 
 def vote_post(pid, session, database):
     voted = database.vote_post(session, pid)
-    if voted:    
+    if voted:
         print('Cannot Vote : Already Voted on Post')
     else:
         print('Vote Recorded')
@@ -48,6 +48,7 @@ def add_tag(pid, database):
 def edit_post(pid, database):
     post = database.get_post(pid)
     post = cli.edit_post(post[0], post[1])
+    database.update_post(pid, post['title'], post['body'])
 
 
 
@@ -82,16 +83,16 @@ def handle_login(database):
 # MAIN MENU
 def handle_main_menu(session, database):
     choice = cli.master_menu_select()
-    if choice['master menu'] == 'Post a question':
+    if choice == 'Post a question':
         post_question_screen(session, database)
-    elif choice['master menu'] == 'Search for posts':
+    elif choice == 'Search for posts':
         pid = search_questions(database)
         if pid is not None:
             pid = str(pid)
             handle_submenu(session, database, pid)
         else:
             print('No matches')
-    elif choice['master menu'] == 'Logout':
+    elif choice == 'Logout':
         session.logout()
     else:
         sys.exit(0)
@@ -99,7 +100,7 @@ def handle_main_menu(session, database):
 def post_question_screen(session, database):
     print("\nEnter your question\n")
     question = cli.write_post()
-    database.post_questions(session.get_uid(), question['title'], question['body'])
+    database.post_questions(session, question['title'], question['body'])
     
 def search_questions(database):
     print("\nSearching the database....\n")
@@ -132,7 +133,7 @@ def generate_search_list(ordered_posts):
         except KeyError:
             break
     if len(posts) > 0:
-        choice = cli.put_search_list(posts, ordered_posts.is_empty())['search menu']
+        choice = cli.put_search_list(posts, ordered_posts.is_empty())
         if choice != 'Next Page':
             choice_list = choice.split(',')
             pid = int(choice_list[0][2:].split('\'')[0])

@@ -56,7 +56,7 @@ class Database:
             ''',
             (username,)
             )
-            session = UserSession(username, privildeged=self.cursor.fetchone() is not None)
+            session = UserSession(username, priviledged=self.cursor.fetchone() is not None)
             session._activate()
             return session
 
@@ -86,14 +86,14 @@ class Database:
         except sqlite3.IntegrityError:
             print("Error: Enter UNIQUE User ID")
     
-    def post_questions(self, user, title, body):
+    def post_questions(self, session, title, body):
         pid = self.generate_pid()
         self.cursor.execute(
             '''
             insert into posts(pid, pdate, title, body, poster)
             values (?,?,?,?,?)
             ''',
-            (pid, date.today(), title, body, user)
+            (pid, date.today(), title, body, session.get_uid())
         )
         self.cursor.execute(
             '''
@@ -101,6 +101,27 @@ class Database:
             values (?)
             ''', 
             (pid)
+        )
+
+    def get_post(self, pid):
+        self.cursor.execute(
+            '''
+            SELECT title, body
+            FROM posts
+            WHERE pid = ?
+            ''',
+            (pid,)
+        )
+        return self.cursor.fetchone()
+
+    def update_post(self, pid, title, body):
+        self.cursor.execute(
+            '''
+            UPDATE posts
+            SET title = ?, body = ?
+            WHERE pid = ? 
+            ''',
+            (title, body, pid)
         )
     
     def search_posts(self, keyword):
@@ -113,14 +134,14 @@ class Database:
             )
         return self.cursor.fetchall()
         
-    def post_answers(self, user, title, body, qid):
+    def post_answer(self, session, title, body, qid):
         pid = self.generate_pid()
         self.cursor.execute(
             '''
             INSERT INTO posts(pid, pdate, title, body, poster)
             VALUES (?,?,?,?,?) 
             ''',
-            (pid, date.today(), title, body, user)
+            (pid, date.today(), title, body, session.get_uid())
         )
         self.cursor.execute(
             '''
@@ -130,7 +151,7 @@ class Database:
             (pid, qid)
         )
     
-    def vote_post(self, user, pid):
+    def vote_post(self, session, pid):
         self.cursor.execute(
             '''
             SELECT *
@@ -138,7 +159,7 @@ class Database:
             WHERE pid = ?
             AND uid = ?
             ''',
-            (pid, user)
+            (pid, session.get_uid())
         )
         if self.cursor.fetchone() is None:
             self.cursor.execute(
@@ -157,7 +178,7 @@ class Database:
                 INSERT INTO votes(pid, vno, vdate, uid)
                 VALUES (?,?,?,?)
                 ''',
-                (pid, vno, date.today(), user)
+                (pid, vno, date.today(), session.get_uid())
             )
             return 0
         else:
@@ -212,28 +233,46 @@ class Database:
         except sqlite3.IntegrityError:
             pass # Ignore because that just means the same badge has already been given today
 
+    def add_tag(self, pid, tag):
+        self.cursor.execute(
+            '''
+            SELECT *
+            FROM tags
+            WHERE INSTRNOCASE(tag, ?)
+            ''',
+            (tag,)
+        )
+        if (self.cursor.fetchone() is None):
+            self.cursor.execute(
+                '''
+                INSERT INTO tags
+                VALUES (?, ?)
+                ''',
+                (pid, tag)
+            )
+
     
     def generate_pid(self):
         self.cursor.execute(
             '''
-            SELECT MAX(pid)
+            SELECT MAX(pid) + 1
             FROM posts   
             '''
         )
         # TODO handle overflows and non-integer post ids
         pid = self.cursor.fetchone()[0]
-        if pid is None:
-            pid = str(0)
-        else:
-            pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
+        # if pid is None:
+        #     pid = str(0)
+        # else:
+        #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
         return pid
 
 class UserSession:
 
-    def __init__(self, uid, privildeged = False):
+    def __init__(self, uid, priviledged = False):
         self.uid = uid
         self.active = False
-        self.privileged = privildeged
+        self.priviledged = priviledged
 
     def _activate(self):
         self.active = True
@@ -245,7 +284,7 @@ class UserSession:
         return self.active
 
     def is_priviledged(self):
-        return self.privildeged
+        return self.priviledged
 
     def get_uid(self):
         return self.uid

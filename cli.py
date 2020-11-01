@@ -30,6 +30,14 @@ _LOGIN_FORM = [
     }
 ]
 
+_TAG_FORM = [
+    {
+        'type': 'input',
+        'name': 'tag',
+        'message': 'Tag'
+    },
+]
+
 _REGISTER_INFO_FORM = [
     {
         'type': 'input',
@@ -86,7 +94,7 @@ _FORCE_MARK_ANSWER_FORM = [
     }
 ]
 
-_QUESTION_FORM = [
+_POST_FORM = [
     {
         'type' : 'input',
         'name' : 'title',
@@ -96,6 +104,21 @@ _QUESTION_FORM = [
         'type' : 'input',
         'name' : 'body',
         'message' : 'body'
+    }
+]
+
+_EDIT_POST_FORM = [
+    {
+        'type' : 'input',
+        'name' : 'title',
+        'message' : 'title',
+        'default' : ''
+    },    
+    {
+        'type' : 'input',
+        'name' : 'body',
+        'message' : 'body',
+        'default' : ''
     }
 ]
 
@@ -113,19 +136,6 @@ _SEARCH_FORM = [
         'name' : 'search menu',
         'message' : 'Select a post',
         'choices' : None
-    }
-]
-
-_ANSWER_FORM = [
-    {
-        'type' : 'input',
-        'name' : 'title',
-        'message' : 'title'
-    },
-    {
-        'type' : 'input',
-        'name' : 'body',
-        'message' : 'body'
     }
 ]
 
@@ -174,8 +184,13 @@ def database_select():
 def master_menu_select():
     return prompt(_MASTER_MENU)
 
-def post_question():
-    return prompt(_QUESTION_FORM)
+def write_post():
+    return prompt(_POST_FORM)
+
+def edit_post(title, body):
+    _EDIT_POST_FORM[0]['default'] = title
+    _EDIT_POST_FORM[1]['default'] = body
+    return prompt(_EDIT_POST_FORM)
 
 def get_keyword():
     return prompt(_KEYWORD_FORM)
@@ -193,10 +208,12 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
         'name' : 'action menu',
         'message' : 'What do you want to do?',
         'choices': [
-            'Post an answer',
-            'Vote on post'
+            'Upvote'
         ]
     }
+    if not show_answer_actions:
+        menu['choices'].append('Post an answer')
+
     if show_priviledged_actions:
         if show_answer_actions:
             menu['choices'].append('Mark as accepted answer')
@@ -208,6 +225,8 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
                 'Edit the post'
             ]
         )
+
+    menu['choices'].append("Return")
     
     return prompt([menu])
 
@@ -218,8 +237,7 @@ def choose_badge(badge_list):
         'message' : 'Give what badge?',
         'choices': badge_list
     }
-    return prompt([badge_menu]["badge name"])
+    return prompt([badge_menu])["badge name"]
 
-def post_answer():
-    return prompt(_ANSWER_FORM)
-
+def request_tag():
+    return prompt(_TAG_FORM['tag'])

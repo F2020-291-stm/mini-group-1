@@ -1,17 +1,17 @@
+import sys
 from sys import argv
 
+from menus import handle_login, handle_main_menu
 from database import Database
-from login_screen import login_screen
-from menu_screen import master_menu_screen
 import cli
 
 if __name__ == "__main__":
     database = Database()
     database.init_db(argv[1])
     while True:
-        session = login_screen(database)
+        session = handle_login(database)
         while session.is_active():
-            master_menu_screen(session, database)
+            handle_main_menu(session, database)
 
 
 

@@ -58,8 +58,9 @@ class Database:
             SELECT *
             FROM privileged
             WHERE uid = ?
+            COLLATE NOCASE
             ''',
-            (username,)
+            (username)
             )
             session = UserSession(username, privileged = self.cursor.fetchone() is not None)
             session._activate()
@@ -71,6 +72,7 @@ class Database:
             SELECT COUNT(*) > 0
             FROM users
             WHERE uid = ?
+            COLLATE NOCASE
             ''',
             (username)
         )
@@ -114,8 +116,9 @@ class Database:
             SELECT title, body
             FROM posts
             WHERE pid = ?
+            COLLATE NOCASE
             ''',
-            (pid,)
+            (pid)
         )
         return self.cursor.fetchone()
 
@@ -163,6 +166,7 @@ class Database:
             FROM votes
             WHERE pid = ?
             AND uid = ?
+            COLLATE NOCASE
             ''',
             (pid, session.get_uid())
         )

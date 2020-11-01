@@ -103,7 +103,6 @@ def post_question_screen(session, database):
     
 def search_questions(database):
     print("\nSearching the database....\n")
-    print("Enter Search Keywords seperated by \';\'\n")
     keywords = cli.get_keyword()['keywords']
     keywords_list  = [string.strip() for string in keywords.split(';')]
     ordered_posts = PQ() # convert dict to PQ

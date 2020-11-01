@@ -239,4 +239,4 @@ def choose_badge(badge_list):
     return prompt([badge_menu])["badge name"]
 
 def request_tag():
-    return prompt(_TAG_FORM['tag'])
+    return prompt(_TAG_FORM)['tag']

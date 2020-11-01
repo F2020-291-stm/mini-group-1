@@ -3,6 +3,7 @@ from datetime import date
 from base64 import b64decode, b64encode
 import os
 import re
+from string import ascii_lowercase, digits
 
 def _instr_nocase(X, Y):
     if re.search(Y, X, re.IGNORECASE) is not None:
@@ -100,7 +101,7 @@ class Database:
             insert into questions(pid)
             values (?)
             ''', 
-            (pid,)
+            (pid)
         )
 
     def get_post(self, pid):
@@ -270,6 +271,9 @@ class Database:
         #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
         return pid
     
+    def get_next_lex(self, str):
+        from string import ascii_lowercase, digits
+    
     def is_answer(self, pid):
         self.cursor.execute(
             '''
@@ -305,4 +309,18 @@ class UserSession:
     def get_uid(self):
         return self.uid
         
-    
+def get_next_lex(string1):
+    string = string1.lower()
+    done = False
+    lex_order = ascii_lowercase + digits
+    if string is None or len(string) == 0:
+        return lex_order[0]
+    for index in range(len(string) - 1, -1, -1):
+        if string[index] != lex_order[-1]:
+            done = True
+            break
+    if not done:
+        return string + lex_order[0]
+    for index1 in range(len(lex_order)):
+        if string[index] == lex_order[index1]:
+            return string[:index]+lex_order[index1+1]+string[index + 1:]    

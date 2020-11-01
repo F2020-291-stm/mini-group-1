@@ -6,8 +6,7 @@ from itertools import count
 
 # SUBMENU
 def handle_submenu(session, database, pid):
-    option = cli.action_menu_select(session.is_privileged(), False)
-
+    option = cli.action_menu_select(session.is_privileged(), database.is_answer(pid))
     if option == 'Post an answer':
         post_answer(pid, session, database)
     elif option == 'Vote on post':
@@ -49,8 +48,6 @@ def edit_post(pid, database):
     post = database.get_post(pid)
     post = cli.edit_post(post[0], post[1])
     database.update_post(pid, post['title'], post['body'])
-
-
 
 # LOGIN MENU
 def handle_login(database):

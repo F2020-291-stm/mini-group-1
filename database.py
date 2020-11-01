@@ -56,7 +56,7 @@ class Database:
             ''',
             (username,)
             )
-            session = UserSession(username, priviledged=self.cursor.fetchone() is not None)
+            session = UserSession(username, privileged = self.cursor.fetchone() is not None)
             session._activate()
             return session
 
@@ -269,6 +269,19 @@ class Database:
         # else:
         #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
         return pid
+    
+    def is_answer(self, pid):
+        self.cursor.execute(
+            '''
+            SELECT *
+            FROM answers
+            WHERE pid = ?
+            ''',
+            (pid)
+        )
+        if self.cursor.fetchone() is not None:
+            return True
+        return False
 
 class UserSession:
 

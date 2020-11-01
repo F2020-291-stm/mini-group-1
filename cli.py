@@ -217,7 +217,6 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
     if show_priviledged_actions:
         if show_answer_actions:
             menu['choices'].append('Mark as accepted answer')
-
         menu['choices'].extend(
             [
                 'Give a badge',

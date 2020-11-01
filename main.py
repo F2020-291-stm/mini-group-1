@@ -7,7 +7,10 @@ import cli
 
 if __name__ == "__main__":
     database = Database()
-    database.init_db(argv[1])
+    try:
+        database.init_db(argv[1])
+    except IndexError:
+        database.init_db('db/prj1.db')
     while True:
         session = handle_login(database)
         while session.is_active():

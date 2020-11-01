@@ -44,7 +44,11 @@ class Database:
             SELECT *
             FROM users
             WHERE uid = ?
-            AND pwd = ?
+            COLLATE NOCASE
+            INTERSECT
+            SELECT *
+            FROM users
+            WHERE pwd = ?
             ''',
             (username, password)
         )
@@ -244,7 +248,7 @@ class Database:
             FROM tags
             WHERE INSTRNOCASE(tag, ?)
             ''',
-            (tag,)
+            (tag)
         )
         if (self.cursor.fetchone() is None):
             self.cursor.execute(

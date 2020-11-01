@@ -49,15 +49,14 @@ class Database:
         )
         if self.cursor.fetchone() is not None:
             self.cursor.execute(
-                '''
-                SELECT *
-                FROM privileged
-                WHERE uid = ?
-                ''',
-                (username,)
+            '''
+            SELECT *
+            FROM privileged
+            WHERE uid = ?
+            ''',
+            (username,)
             )
-            val = self.cursor.fetchone()
-            session = UserSession(username, privileged=val is not None)
+            session = UserSession(username, priviledged=self.cursor.fetchone() is not None)
             session._activate()
             return session
 

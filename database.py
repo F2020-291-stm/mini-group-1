@@ -234,7 +234,6 @@ class Database:
         with open('queries/search_posts.sql') as sql_file:
             sql_as_string = sql_file.read()
             sql_as_string = sql_as_string.replace('<placeholder>', query, 1)
-        print(sql_as_string)
         self.cursor.execute(sql_as_string)
         return self.cursor.fetchall()
     

@@ -293,7 +293,7 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
     _ACTION_MENU[0]['choices'] = ['Upvote'] #anyone can upvote any post
     if not show_answer_actions:
         #if it's not an answer, it's a question and thus can be answered
-        _ACTION_MENU['choices'].append('Post an answer')
+        _ACTION_MENU[0]['choices'].append('Post an answer')
 
     if show_priviledged_actions:
         #if user is privileged
@@ -309,7 +309,7 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
             ]
         )
 
-    _ACTION_MENU['choices'].append("Return") #user can also choose to do nothing
+    _ACTION_MENU[0]['choices'].append("Return") #user can also choose to do nothing
     
     return prompt(_ACTION_MENU)['action']
 

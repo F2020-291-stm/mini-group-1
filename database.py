@@ -313,19 +313,6 @@ class Database:
             return True
         return False
 
-    def is_question(self, pid):
-        self.cursor.execute(
-            '''
-            SELECT *
-            FROM questions
-            WHERE pid = ?
-            ''',
-            (pid,)
-        )
-        if self.cursor.fetchone() is not None:
-            return True
-        return False
-
 class UserSession:
 
     def __init__(self, uid, privileged = False):

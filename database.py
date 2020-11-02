@@ -294,8 +294,8 @@ class Database:
         )
         # TODO handle overflows and non-integer post ids
         pid = self.cursor.fetchone()[0]
-        # if pid is None:
-        #     pid = str(0)
+        if pid is None:
+            pid = str(0)
         # else:
         #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
         return pid

@@ -1,4 +1,5 @@
-select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, p.nov as nov, count(a.pid) as ano 
+select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, p.nov as nov, p.ano as ano, count(q.pid) as qno
+from(select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, p.nov as nov, count(a.pid) as ano, p.filter as filter
 from(select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, count(v.pid) as nov, p.filter as filter
     from(
         <placeholder>) p
@@ -6,5 +7,8 @@ from(select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.
     group by p.pid, p.pdate, p.title, p.body, p.poster, p.filter
     order by p.filter) p
 left join answers a on a.qid = p.pid
+group by p.pid, p.pdate, p.title, p.body, p.poster, p.nov, p.filter
+order by p.filter) p
+left join questions q on q.pid = p.pid
 group by p.pid, p.pdate, p.title, p.body, p.poster, p.nov
 order by p.filter;

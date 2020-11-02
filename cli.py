@@ -1,4 +1,4 @@
-from PyInquirer import prompt
+from PyInquirer import prompt, Separator
 
 #template forms that will be repeatedly used
 #   type determines the type of input that it expects the user to perform
@@ -262,10 +262,19 @@ def put_search_list(posts, empty):
 
     Returns:
         Dictionary: Returns a dictionary containing the post that the user selected
-    """    
-    _SEARCH_FORM[0]['choices'] = [str(post) for post in posts] # updates the search_form to have the correct choices (posts)
+    """
+    display = [Separator("{:<5}|{:<10}|{:<30}|{:<40.40}|{:<15}|{:<5}|{:<5}".format('Pid', 'Date', 'Title', 'Body', 'Poster', 'Votes', 'Answers'))]
+    for post in posts:
+        item = {}
+        if post[6] is not None:
+            item['name'] = "{:<5}|{:<10}|{:<30}|{:<40.40}|{:<15}|{:<5}|{:<5}".format(post[0], post[1], post[2], post[3], post[4], post[5], post[6])
+        else:
+            item['name'] = "{:<5}|{:<10}|{:<30}|{:<40.40}|{:<15}|{:<5}".format(post[0], post[1], post[2], post[3], post[4], post[5])
+        item['value'] = post[0]
+        display.append(item)
+    _SEARCH_FORM[0]['choices'] = display
     if not empty:
-        _SEARCH_FORM[0]['choices'] += ['Next Page'] # if we have extra posts we're not showing, give option to go to next page
+        _SEARCH_FORM[0]['choices'].append({'name':'Next Page', 'value': '+'})
     return prompt(_SEARCH_FORM)['post']
 
 def action_menu_select(show_priviledged_actions, show_answer_actions):

@@ -85,7 +85,7 @@ class Database:
             WHERE uid = ?
             COLLATE NOCASE
             ''',
-            (username)
+            (username,)
             )
             session = UserSession(username, privileged = self.cursor.fetchone() is not None) #creates a session for that user
             session._activate()

@@ -144,12 +144,16 @@ _ACTION_MENU = [
         'type' : 'list',
         'name' : 'action',
         'message' : 'What do you want to do?',
-        'choices': [
-            'Post an answer',
-            'Vote on post',
-            'Accept the answer',
-            
-        ]
+        'choices': []
+    }
+]
+
+_BADGE_MENU = [
+    {
+        'type' : 'list',
+        'name' : 'badge',
+        'message' : 'Give what badge?',
+        'choices': []
     }
 ]
 
@@ -203,21 +207,14 @@ def put_search_list(posts, empty):
 
 def action_menu_select(show_priviledged_actions, show_answer_actions):
     # Cannot store this as a "constant" as we edit it here
-    menu = {
-        'type' : 'list',
-        'name' : 'action',
-        'message' : 'What do you want to do?',
-        'choices': [
-            'Upvote'
-        ]
-    }
+    _ACTION_MENU[0]['choices'] = ['Upvote']
     if not show_answer_actions:
-        menu['choices'].append('Post an answer')
+        _ACTION_MENU['choices'].append('Post an answer')
 
     if show_priviledged_actions:
         if show_answer_actions:
-            menu['choices'].append('Mark as accepted answer')
-        menu['choices'].extend(
+            _ACTION_MENU['choices'].append('Mark as accepted answer')
+        _ACTION_MENU['choices'].extend(
             [
                 'Give a badge',
                 'Add a tag',
@@ -225,18 +222,13 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
             ]
         )
 
-    menu['choices'].append("Return")
+    _ACTION_MENU['choices'].append("Return")
     
-    return prompt([menu])['action']
+    return prompt(_ACTION_MENU)['action']
 
 def choose_badge(badge_list):
-    badge_menu = {
-        'type' : 'list',
-        'name' : 'badge',
-        'message' : 'Give what badge?',
-        'choices': badge_list
-    }
-    return prompt([badge_menu])["badge"]
+    _BADGE_MENU[0]['choices'] = badge_list
+    return prompt(_BADGE_MENU)["badge"]
 
 def request_tag():
     return prompt(_TAG_FORM)['tag']

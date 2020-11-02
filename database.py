@@ -111,6 +111,7 @@ class Database:
         )
 
     def get_post(self, pid):
+        #returns title and body of post pid
         self.cursor.execute(
             '''
             SELECT title, body
@@ -160,6 +161,7 @@ class Database:
         )
     
     def vote_post(self, session, pid):
+        #finds all votes on pid made by user of the session
         self.cursor.execute(
             '''
             SELECT *
@@ -171,17 +173,21 @@ class Database:
             (pid, session.get_uid())
         )
         if self.cursor.fetchone() is None:
+            #if there are none, that means this user has not voted
+            #on this post yet, which means they now can
             self.cursor.execute(
                 '''
                 SELECT max(vno)
                 FROM votes   
                 '''
             )
+            #set vno of this new vote to the biggest vno+1
             vno = self.cursor.fetchone()[0]
             if vno is None:
                 vno = 0
             else:
-                vno = vno + 1            
+                vno = vno + 1
+            #and now apply this vote to the database          
             self.cursor.execute(
                 '''
                 INSERT INTO votes(pid, vno, vdate, uid)
@@ -189,11 +195,12 @@ class Database:
                 ''',
                 (pid, vno, date.today(), session.get_uid())
             )
-            return 0
+            return 0 #upon successful vote, return 0
         else:
-            return 1
+            return 1 #upon unsuccessful vote, return 1
     
     def mark_accepted_answer(self, aid, force=False):
+        #finds the question and checks if it is already answered 
         self.cursor.execute(
             '''
             SELECT *
@@ -204,9 +211,11 @@ class Database:
             ''',
             (aid)
         )
-        if (self.cursor.fetchone() is not None):
+        if (not force and self.cursor.fetchone() is not None):
+            #if the question already has a "the answer", then this answer cannot become
+            #"the answer", so return false. This step is overriden if force is set to true
             return False
-        
+        #otherwise, set this answer to be "the answer"
         self.cursor.execute(
             '''
             UPDATE questions
@@ -219,9 +228,10 @@ class Database:
             ''',
             (aid, aid)
         )
-        return True
+        return True #return true to signify that it went through
     
     def get_badge_list(self):
+        #returns list of all badge names
         self.cursor.execute(
             '''
             SELECT bname
@@ -234,18 +244,31 @@ class Database:
         return badges
 
     def give_badge(self, pid, bname):
+        #gets uid of poster
+        self.cursor.execute(
+            '''
+            Select poster
+            From posts
+            Where pid = ?
+            ''',
+            (pid)
+        )
+        uid = self.cursor.fetchone()
+
+        #gives badge bname to user uid, right now
         try:
             self.cursor.execute(
                 '''
                 INSERT INTO ubadges
                 VALUES (?, ?, ?)
                 ''',
-                (pid, date.today(), bname)
+                (uid, date.today(), bname)
             )
         except sqlite3.IntegrityError:
             pass # Ignore because that just means the same badge has already been given today
 
     def add_tag(self, pid, tag):
+        #checks if this tag is already applied to pid
         self.cursor.execute(
             '''
             SELECT *
@@ -256,6 +279,7 @@ class Database:
             (tag)
         )
         if (self.cursor.fetchone() is None):
+            #if it hasn't been tagged with this tag, then tag it
             self.cursor.execute(
                 '''
                 INSERT INTO tags
@@ -263,6 +287,9 @@ class Database:
                 ''',
                 (pid, tag)
             )
+            return 0 #return a 0 to signify a success
+        
+        return 1 #otherwise do nothing and return 1 to signify a failure
 
     
     def generate_pid(self):
@@ -299,6 +326,12 @@ class Database:
 class UserSession:
 
     def __init__(self, uid, privileged = False):
+        #uid is the user id of the user that this session corresponds to
+        #Once a session has began, main.py will repeatedly allow the user
+        #   to select options from a menu until they logout. Active determines
+        #   whether a user is logged our or not
+        #privileged sessions have more options available to them for 
+        #   interacting with other user's posts
         self.uid = uid
         self.active = False
         self.privileged = privileged

@@ -7,6 +7,16 @@ from string import ascii_lowercase, digits
 from itertools import count
 
 def _instr_nocase(X, Y):
+    """[summary]
+
+    Args:
+        X ([type]): [description]
+        Y ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """    
+
     if X is None or Y is None:
         return 0
     if re.search(Y, X, re.IGNORECASE) is not None:
@@ -17,7 +27,10 @@ def _instr_nocase(X, Y):
 class Database:
     def init_db(self, path):
         """
-        Initialize the database connection
+        Initialize the database connection.
+
+        Args:
+            path (string): path that the chosen database lies in
         """
         exists = True
         if not os.path.exists(path):
@@ -29,21 +42,29 @@ class Database:
             self.create_db()
     
     def create_db(self):
+        """Creates the database.
+        """        
         with open('queries/prj-tables.sql') as sql_file:
             sql_as_string = sql_file.read()
             self.cursor.executescript(sql_as_string)
         
     def sanitize(self, value):
         """
-        Sanitizes values for database usage
+        Sanitizes values for database usage.
         """
         pass
 
     def open_session(self, username, password):
-        """
-        Opens a session with the username and password
-        """
-        self.cursor.execute(
+        """Creates a session for this user.
+
+        Args:
+            username (String): A string containing the username
+            password (String): A string containing the password
+
+        Returns:
+            [UserSesion]: A session containing uid and if the user is privileged or not
+        """        
+        self.cursor.execute( #finds all users with this username/password, either 0 or 1
             '''
             SELECT *
             FROM users
@@ -56,31 +77,53 @@ class Database:
             ''',
             (username, password,)
         )
-        if self.cursor.fetchone() is not None:
+        if self.cursor.fetchone() is not None: #if the user exists then check if the user is privileged
             self.cursor.execute(
             '''
             SELECT *
             FROM privileged
             WHERE uid = ?
+            COLLATE NOCASE
             ''',
-            (username,)
+            (username)
             )
-            session = UserSession(username, privileged = self.cursor.fetchone() is not None)
+            session = UserSession(username, privileged = self.cursor.fetchone() is not None) #creates a session for that user
             session._activate()
             return session
 
     def check_username(self, username):
+        """Checks if username exists in the database.
+
+        Args:
+            username (String): A string containing the username
+
+        Returns:
+            Boolean: Returns 1 if the user exists, 0 if not
+        """        
         self.cursor.execute(
             '''
             SELECT COUNT(*) > 0
             FROM users
             WHERE uid = ?
+            COLLATE NOCASE
             ''',
             (username,)
         )
         return self.cursor.fetchone()
 
     def register(self, username, password, name, city):
+        """Enters a user into the database. Initiates a session for this user
+        If user already exists, then complains and doesn't allow it. 
+
+        Args:
+            username (String): A string containing the username
+            password (String): A string containing the password
+            name (String): A string containing the name
+            city (String): A straining containing the city name
+
+        Returns:
+            [UserSession]: A session for the user created
+        """        
         try:
             self.cursor.execute(
                 '''
@@ -96,8 +139,15 @@ class Database:
             print("Error: Enter UNIQUE User ID")
     
     def post_questions(self, session, title, body):
-        pid = self.generate_pid()
-        self.cursor.execute(
+        """Creates a post.
+
+        Args:
+            session (UserSession): A session for the user logged in
+            title (String): Title of the post
+            body (String): Body of the post
+        """        
+        pid = self.generate_pid() #generates a unique pid
+        self.cursor.execute( 
             '''
             insert into posts(pid, pdate, title, body, poster)
             values (?,?,?,?,?)
@@ -113,18 +163,34 @@ class Database:
         )
 
     def get_post(self, pid):
+        """Retrieves post with given pid.
+
+        Args:
+            pid (String): pid of the wanted post
+
+        Returns:
+            [Post]: The wanted post
+        """        
         self.cursor.execute(
             '''
             SELECT title, body
             FROM posts
             WHERE pid = ?
+            COLLATE NOCASE
             ''',
-            (pid,)
+            (pid)
         )
         return self.cursor.fetchone()
 
     def update_post(self, pid, title, body):
-        self.cursor.execute(
+        """Given a pid, updates its title and body with given parameters.
+
+        Args:
+            pid (String): pid of selected post
+            title (String): String containing new title
+            body (String): String containing new body
+        """        
+        self.cursor.execute( #finds pid and updates values
             '''
             UPDATE posts
             SET title = ?, body = ?
@@ -134,6 +200,15 @@ class Database:
         )
     
     def search_posts(self, keyword_list):
+        #TODO
+        """[summary]
+
+        Args:
+            keyword (String): Given keyword for the search
+
+        Returns:
+            [type]: [description]
+        """
         query = "SELECT p.pid AS pid\nFROM(\n"
         first = True
         for index in range(len(keyword_list)):
@@ -164,15 +239,24 @@ class Database:
         return self.cursor.fetchall()
     
     def post_answer(self, session, title, body, qid):
-        pid = self.generate_pid()
-        self.cursor.execute(
+        """Creates a post and assigns it as an answer to a chosen question.
+
+        Args:
+            session (UserSession): Relevantly, uid of answerer
+            title (String): Title of answer
+            body (String): Body of answer
+            qid (String): pid of question being answered
+        """        
+        #creates a post and adds it to the posts and answers tables
+        pid = self.generate_pid() #generates unique pid for new answer
+        self.cursor.execute( #creates post
             '''
             INSERT INTO posts(pid, pdate, title, body, poster)
             VALUES (?,?,?,?,?) 
             ''',
             (pid, date.today(), title, body, session.get_uid())
         )
-        self.cursor.execute(
+        self.cursor.execute( #assigns it as an answer to qid
             '''
             INSERT INTO answers(pid, qid)
             VALUES (?,?)
@@ -181,27 +265,41 @@ class Database:
         )
     
     def vote_post(self, session, pid):
-        self.cursor.execute(
+        """Upvotes a selected post.
+
+        Args:
+            session (UserSession): Relevantly, uid of voter
+            pid (String): pid of post being voted on
+
+        Returns:
+            Boolean: Returns 0 upon successful vote, 1 if user has already cast a vote on that post
+        """        
+        self.cursor.execute( #finds all votes on pid made by user of the session
             '''
             SELECT *
             FROM votes
             WHERE pid = ?
             AND uid = ?
+            COLLATE NOCASE
             ''',
             (pid, session.get_uid(),)
         )
         if self.cursor.fetchone() is None:
+            #if there are none, that means this user has not voted
+            #on this post yet, which means they now can
             self.cursor.execute(
                 '''
                 SELECT max(vno)
                 FROM votes   
                 '''
             )
+            #set vno of this new vote to the biggest vno+1
             vno = self.cursor.fetchone()[0]
             if vno is None:
                 vno = 0
             else:
-                vno = vno + 1            
+                vno = vno + 1
+            #and now apply this vote to the database          
             self.cursor.execute(
                 '''
                 INSERT INTO votes(pid, vno, vdate, uid)
@@ -209,12 +307,24 @@ class Database:
                 ''',
                 (pid, vno, date.today(), session.get_uid(),)
             )
-            return 0
+            return 0 #upon successful vote, return 0
         else:
-            return 1
+            return 1 #upon unsuccessful vote, return 1
     
     def mark_accepted_answer(self, aid, force=False):
-        self.cursor.execute(
+        """Marks an answer as the accepted answer to a post. User
+        can choose if they'd like to override any current accepted answers
+        with this one.
+
+        Args:
+            aid (String): pid of answer being chosen as the accepted answer
+            force (bool, optional): True if user wants to override any current accepted answers.
+                 Defaults to False.
+
+        Returns:
+            Boolean: Returns true if post was assigned as accepted answer, false if it wasn't
+        """        
+        self.cursor.execute( #finds the question and checks if it is already answered
             '''
             SELECT *
             FROM questions q, answers a
@@ -224,9 +334,11 @@ class Database:
             ''',
             (aid,)
         )
-        if (self.cursor.fetchone() is not None):
+        if (not force and self.cursor.fetchone() is not None):
+            #if the question already has a "the answer", then this answer cannot become
+            #the accepted answer, so return false. This step is overriden if force is set to true
             return False
-        
+        #otherwise, set this answer to be "the answer"
         self.cursor.execute(
             '''
             UPDATE questions
@@ -239,9 +351,15 @@ class Database:
             ''',
             (aid, aid,)
         )
-        return True
+        return True #return true to signify that it went through
     
     def get_badge_list(self):
+        """Finds the name of all badges.
+
+        Returns:
+            List: list of all badge names
+        """        
+        #returns list of all badge names
         self.cursor.execute(
             '''
             SELECT bname
@@ -254,6 +372,23 @@ class Database:
         return badges
 
     def give_badge(self, pid, bname):
+        """Gives a chosen badge to the poster of a post.
+
+        Args:
+            pid (String): pid of chosen post
+            bname (String): name of chosen badge
+        """        
+        self.cursor.execute( #gets uid of poster
+            '''
+            Select poster
+            From posts
+            Where pid = ?
+            ''',
+            (pid)
+        )
+        uid = self.cursor.fetchone()
+
+        #gives badge bname to user uid, right now
         try:
             self.cursor.execute(
                 '''
@@ -266,7 +401,17 @@ class Database:
             pass # Ignore because that just means the same badge has already been given today
 
     def add_tag(self, pid, tag):
-        self.cursor.execute(
+        """Adds a tag to a specified post. If post already has that tag, then
+        don't add it again.
+
+        Args:
+            pid (String): pid of select posted
+            tag (String): string containing the chosen tag
+
+        Returns:
+            Boolean: Return 0 to signify a successful addition of a tag, 1 otherwise
+        """        
+        self.cursor.execute( #checks if this tag is already applied to pid
             '''
             SELECT *
             FROM tags
@@ -276,6 +421,7 @@ class Database:
             (tag,)
         )
         if (self.cursor.fetchone() is None):
+            #if it hasn't been tagged with this tag, then tag it
             self.cursor.execute(
                 '''
                 INSERT INTO tags
@@ -283,9 +429,17 @@ class Database:
                 ''',
                 (pid, tag,)
             )
+            return 0 #return a 0 to signify a success
+        
+        return 1 #otherwise do nothing and return 1 to signify a failure
 
     
     def generate_pid(self):
+        """Gerenerates a unique pid
+
+        Returns:
+            String: The generated pid
+        """        
         self.cursor.execute(
             '''
             SELECT MAX(pid) + 1
@@ -300,7 +454,16 @@ class Database:
         #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
         return pid
     
+
     def is_answer(self, pid):
+        """Given a pid, checks if it is an answer (as opposed to a question)
+
+        Args:
+            pid (String): pid of potential answer
+
+        Returns:
+            Boolean: Return True if it is an answer, False otherwise
+        """        
         self.cursor.execute(
             '''
             SELECT *
@@ -314,8 +477,17 @@ class Database:
         return False
 
 class UserSession:
+    """Used to keep track of which user is logged in such that their actions
+    Can be attributed to their uid
+    """    
 
     def __init__(self, uid, privileged = False):
+        #uid is the user id of the user that this session corresponds to
+        #Once a session has began, main.py will repeatedly allow the user
+        #   to select options from a menu until they logout. Active determines
+        #   whether a user is logged our or not
+        #privileged sessions have more options available to them for 
+        #   interacting with other user's posts
         self.uid = uid
         self.active = False
         self.privileged = privileged

@@ -1,4 +1,4 @@
-from PyInquirer import prompt
+from PyInquirer import prompt, Separator
 _DATABASE_FORM = [
     {
         'type': 'input',
@@ -195,13 +195,13 @@ def get_keyword():
     return prompt(_KEYWORD_FORM)
 
 def put_search_list(posts, empty):
-    display = []
+    display = [Separator("{:<5}|{:<10}|{:<30}|{:<40.40}|{:<15}|{:<5}|{:<5}".format('Pid', 'Date', 'Title', 'Body', 'Poster', 'Votes', 'Answers'))]
     for post in posts:
         item = {}
         if post[6] is not None:
-            item['name'] = "{:<3}|{:<13}|{:<20}|{:<30.30}|{:<10}|{:<3}|{:<3}".format(post[0], post[1], post[2], post[3], post[4], post[5], post[6])
+            item['name'] = "{:<5}|{:<10}|{:<30}|{:<40.40}|{:<15}|{:<5}|{:<5}".format(post[0], post[1], post[2], post[3], post[4], post[5], post[6])
         else:
-            item['name'] = "{:<3}|{:<13}|{:<20}|{:<30.30}|{:<10}|{:<3}".format(post[0], post[1], post[2], post[3], post[4], post[5])
+            item['name'] = "{:<5}|{:<10}|{:<30}|{:<40.40}|{:<15}|{:<5}".format(post[0], post[1], post[2], post[3], post[4], post[5])
         item['value'] = post[0]
         display.append(item)
     _SEARCH_FORM[0]['choices'] = display

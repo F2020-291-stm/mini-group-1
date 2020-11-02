@@ -1,7 +1,6 @@
 import cli
 import sys
 
-from util import PQ
 from itertools import count
 
 # SUBMENU

@@ -118,4 +118,6 @@ def generate_search_list(search_list):
             items.append(search_list.pop(0))
     except IndexError:
         empty = True
+    if not search_list:
+        empty = True
     return cli.put_search_list(items, empty)

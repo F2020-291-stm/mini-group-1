@@ -4,11 +4,15 @@ from base64 import b64decode, b64encode
 import os
 import re
 from string import ascii_lowercase, digits
+from itertools import count
 
 def _instr_nocase(X, Y):
+    if X is None or Y is None:
+        return 0
     if re.search(Y, X, re.IGNORECASE) is not None:
         return 1
     return 0
+        
 
 class Database:
     def init_db(self, path):
@@ -19,7 +23,7 @@ class Database:
         if not os.path.exists(path):
             exists = False
         self.db = sqlite3.connect(path, isolation_level=None)
-        self.db.create_function('INSTRNOCASE',2,_instr_nocase)
+        self.db.create_function('INSTRNOCASE', 2, _instr_nocase)
         self.cursor = self.db.cursor()
         if not exists:
             self.create_db()
@@ -130,22 +134,35 @@ class Database:
         )
     
     def search_posts(self, keyword_list):
-        print(keyword_list)
         query = "SELECT p.pid AS pid\nFROM(\n"
         first = True
-        for keyword in keyword_list:
+        for index in range(len(keyword_list)):
+            keyword = keyword_list[index]
             if not first:
                 query += "\nUNION ALL\n"
             else:
                 first = False
-            query +="(SELECT pid AS pid\nFROM posts\nWHERE (INSTRNOCASE(title,'"+ keyword +"') > 0\nor INSTRNOCASE(body,'" + keyword + "') > 0)\nUNION\nSELECT pid\nFROM tags\nWHERE INSTRNOCASE(tag,'" + keyword + "') > 0))"
-        query +=" p\nGROUP BY pid\nORDER BY COUNT(*) DESC"
+            query +="SELECT p.pid AS pid, " + str(index) +" AS filter\nFROM posts p\nLEFT JOIN tags t\nON p.pid = t.pid \nWHERE (INSTRNOCASE(p.title,'"+ keyword +"') > 0\nOR INSTRNOCASE(p.body,'" + keyword + "') > 0\nOR INSTRNOCASE(t.tag,'" + keyword + "') > 0)"
+        query +=") p\nGROUP BY pid\nORDER BY COUNT(*) DESC;"
+        self.cursor.execute(query)
+        return self.get_post_info(self.cursor.fetchall())
+    
+    def get_post_info(self, posts):
+        if posts is None or not posts:
+            return None
+        query = ""
+        for index in range(len(posts)):
+            query += "SELECT *," + str(index) + " AS filter FROM posts WHERE pid =" + posts[index][0]
+            if index != len(posts)-1:
+                query += "\nUNION ALL\n"
+        query+="\nORDER BY filter"
         with open('queries/search_posts.sql') as sql_file:
             sql_as_string = sql_file.read()
             sql_as_string = sql_as_string.replace('<placeholder>', query, 1)
-            self.cursor.execute(sql_as_string)
+        print(sql_as_string)
+        self.cursor.execute(sql_as_string)
         return self.cursor.fetchall()
-            
+    
     def post_answer(self, session, title, body, qid):
         pid = self.generate_pid()
         self.cursor.execute(
@@ -283,14 +300,24 @@ class Database:
         #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
         return pid
     
-    def get_next_lex(self, str):
-        from string import ascii_lowercase, digits
-    
     def is_answer(self, pid):
         self.cursor.execute(
             '''
             SELECT *
             FROM answers
+            WHERE pid = ?
+            ''',
+            (pid,)
+        )
+        if self.cursor.fetchone() is not None:
+            return True
+        return False
+
+    def is_question(self, pid):
+        self.cursor.execute(
+            '''
+            SELECT *
+            FROM questions
             WHERE pid = ?
             ''',
             (pid,)

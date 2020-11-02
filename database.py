@@ -318,7 +318,7 @@ class Database:
         Args:
             aid (String): pid of answer being chosen as the accepted answer
             force (bool, optional): True if user wants to override any current accepted answers.
-                 Defaults to False.
+                Defaults to False.
 
         Returns:
             Boolean: Returns true if post was assigned as accepted answer, false if it wasn't

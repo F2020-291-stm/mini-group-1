@@ -50,7 +50,7 @@ class Database:
             FROM users
             WHERE pwd = ?
             ''',
-            (username, password)
+            (username, password,)
         )
         if self.cursor.fetchone() is not None:
             self.cursor.execute(
@@ -72,7 +72,7 @@ class Database:
             FROM users
             WHERE uid = ?
             ''',
-            (username)
+            (username,)
         )
         return self.cursor.fetchone()
 
@@ -105,7 +105,7 @@ class Database:
             insert into questions(pid)
             values (?)
             ''', 
-            (pid)
+            (pid,)
         )
 
     def get_post(self, pid):
@@ -126,19 +126,26 @@ class Database:
             SET title = ?, body = ?
             WHERE pid = ? 
             ''',
-            (title, body, pid)
+            (title, body, pid,)
         )
     
-    def search_posts(self, keyword):
-        self.db.create_function('INSTRNOCASE',2,_instr_nocase)
+    def search_posts(self, keyword_list):
+        print(keyword_list)
+        query = "SELECT p.pid AS pid\nFROM(\n"
+        first = True
+        for keyword in keyword_list:
+            if not first:
+                query += "\nUNION ALL\n"
+            else:
+                first = False
+            query +="(SELECT pid AS pid\nFROM posts\nWHERE (INSTRNOCASE(title,'"+ keyword +"') > 0\nor INSTRNOCASE(body,'" + keyword + "') > 0)\nUNION\nSELECT pid\nFROM tags\nWHERE INSTRNOCASE(tag,'" + keyword + "') > 0))"
+        query +=" p\nGROUP BY pid\nORDER BY COUNT(*) DESC"
         with open('queries/search_posts.sql') as sql_file:
             sql_as_string = sql_file.read()
-            self.cursor.execute(
-            sql_as_string,
-            (keyword, keyword, keyword) #keyword
-            )
+            sql_as_string = sql_as_string.replace('<placeholder>', query, 1)
+            self.cursor.execute(sql_as_string)
         return self.cursor.fetchall()
-        
+            
     def post_answer(self, session, title, body, qid):
         pid = self.generate_pid()
         self.cursor.execute(
@@ -153,7 +160,7 @@ class Database:
             INSERT INTO answers(pid, qid)
             VALUES (?,?)
             ''',
-            (pid, qid)
+            (pid, qid,)
         )
     
     def vote_post(self, session, pid):
@@ -164,7 +171,7 @@ class Database:
             WHERE pid = ?
             AND uid = ?
             ''',
-            (pid, session.get_uid())
+            (pid, session.get_uid(),)
         )
         if self.cursor.fetchone() is None:
             self.cursor.execute(
@@ -183,7 +190,7 @@ class Database:
                 INSERT INTO votes(pid, vno, vdate, uid)
                 VALUES (?,?,?,?)
                 ''',
-                (pid, vno, date.today(), session.get_uid())
+                (pid, vno, date.today(), session.get_uid(),)
             )
             return 0
         else:
@@ -198,7 +205,7 @@ class Database:
             AND q.pid = a.qid
             AND q.theaid IS NOT NULL
             ''',
-            (aid)
+            (aid,)
         )
         if (self.cursor.fetchone() is not None):
             return False
@@ -213,7 +220,7 @@ class Database:
                 WHERE a.pid = ?
             )
             ''',
-            (aid, aid)
+            (aid, aid,)
         )
         return True
     
@@ -236,7 +243,7 @@ class Database:
                 INSERT INTO ubadges
                 VALUES (?, ?, ?)
                 ''',
-                (pid, date.today(), bname)
+                (pid, date.today(), bname,)
             )
         except sqlite3.IntegrityError:
             pass # Ignore because that just means the same badge has already been given today
@@ -249,7 +256,7 @@ class Database:
             WHERE tag = ?
             COLLATE NOCASE
             ''',
-            (tag)
+            (tag,)
         )
         if (self.cursor.fetchone() is None):
             self.cursor.execute(
@@ -257,7 +264,7 @@ class Database:
                 INSERT INTO tags
                 VALUES (?, ?)
                 ''',
-                (pid, tag)
+                (pid, tag,)
             )
 
     
@@ -286,7 +293,7 @@ class Database:
             FROM answers
             WHERE pid = ?
             ''',
-            (pid)
+            (pid,)
         )
         if self.cursor.fetchone() is not None:
             return True

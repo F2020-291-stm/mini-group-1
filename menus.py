@@ -9,7 +9,7 @@ def handle_submenu(session, database, pid):
     option = cli.action_menu_select(session.is_privileged(), database.is_answer(pid))
     if option == 'Post an answer':
         post_answer(pid, session, database)
-    elif option == 'Vote on post':
+    elif option == 'Upvote':
         vote_post(pid, session, database)
     elif option == 'Mark as accepted answer':
         mark_accepted_answer(pid, database)
@@ -83,12 +83,16 @@ def handle_main_menu(session, database):
     if choice == 'Post a question':
         post_question_screen(session, database)
     elif choice == 'Search for posts':
-        pid = search_questions(database)
-        if pid is not None:
-            pid = str(pid)
-            handle_submenu(session, database, pid)
-        else:
+        search_list = search_questions(database)
+        if search_list is None:
             print('No matches')
+        else:
+            selected = False
+            while not selected:
+                answer = generate_search_list(search_list)
+                if answer != '+':
+                    selected = True
+            handle_submenu(session, database, answer)
     elif choice == 'Logout':
         session.logout()
     else:
@@ -103,38 +107,15 @@ def search_questions(database):
     print("\nSearching the database....\n")
     keywords = cli.get_keyword()['keywords']
     keywords_list  = [string.strip() for string in keywords.split(';')]
-    ordered_posts = PQ() # convert dict to PQ
-    for keyword in keywords_list:
-        posts = database.search_posts(keyword)
-        for post in posts:
-            if ordered_posts.check_if_in_queue(post):
-                ordered_posts.add_task(post, ordered_posts.get_priority(post) + 1)
-            else:
-                ordered_posts.add_task(post)
-    ans = -10
-    while ans is None or ans < 0:
-        ans = generate_search_list(ordered_posts)
-        if ans is not None and ans >= 0:
-            return ans
-        elif ans is not None and ans == -2:
-            return None
+    search_list = database.search_posts(keywords_list)
+    return search_list
             
-def generate_search_list(ordered_posts):  
-    posts = []
-    counter = count()
-    while next(counter) < 5:
-        try:
-            post = ordered_posts.pop_task()
-            posts.append(post)
-        except KeyError:
-            break
-    if len(posts) > 0:
-        choice = cli.put_search_list(posts, ordered_posts.is_empty())
-        if choice != 'Next Page':
-            choice_list = choice.split(',')
-            pid = int(choice_list[0][2:].split('\'')[0])
-            return pid
-        else:
-            return -1
-    else:
-        return -2
+def generate_search_list(search_list): 
+    empty = False
+    try:
+        items = []
+        for _ in range(5):
+            items.append(search_list.pop(0))
+    except IndexError:
+        empty = True
+    return cli.put_search_list(items, empty)

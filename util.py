@@ -27,7 +27,7 @@ class PQ():
     def pop_task(self):
         '''Remove and return the lowest priority task. Raise KeyError if empty.'''
         while self.heap:
-            priority, count, task = heapq.heappop(self.heap)
+            _, _, task = heapq.heappop(self.heap)
             if task is not self.REMOVED:
                 del self.entry_finder[task]
                 return task

@@ -196,9 +196,15 @@ def get_keyword():
     return prompt(_KEYWORD_FORM)
 
 def put_search_list(posts, empty):
-    _SEARCH_FORM[0]['choices'] = [str(post) for post in posts]
+    display = []
+    for post in posts:
+        item = {}
+        item['name'] = str(post)
+        item['value'] = post[0]
+        display.append(item)
+    _SEARCH_FORM[0]['choices'] = display
     if not empty:
-        _SEARCH_FORM[0]['choices'] += ['Next Page']
+        _SEARCH_FORM[0]['choices'].append({'name':'Next Page', 'value': '+'})
     return prompt(_SEARCH_FORM)['post']
 
 def action_menu_select(show_priviledged_actions, show_answer_actions):

@@ -1,4 +1,4 @@
-select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, p.nov as nov, p.ano as ano, count(q.pid) as qno
+select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, p.nov as nov, case when count(q.pid) > 0 then p.ano end ano
 from(select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, p.nov as nov, count(a.pid) as ano, p.filter as filter
 from(select p.pid as pid, p.pdate as pdate, p.title as title, p.body as body, p.poster as poster, count(v.pid) as nov, p.filter as filter
     from(

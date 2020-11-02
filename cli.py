@@ -198,8 +198,10 @@ def put_search_list(posts, empty):
     display = []
     for post in posts:
         item = {}
-        #item['name'] = "{:<3}|{:<13}|{:<20}|{:<30.30}|{:<10}|{:<3}".format(post[0], post[1], post[2], post[3], post[4], post[5])
-        item['name'] = str(post)
+        if post[6] is not None:
+            item['name'] = "{:<3}|{:<13}|{:<20}|{:<30.30}|{:<10}|{:<3}|{:<3}".format(post[0], post[1], post[2], post[3], post[4], post[5], post[6])
+        else:
+            item['name'] = "{:<3}|{:<13}|{:<20}|{:<30.30}|{:<10}|{:<3}".format(post[0], post[1], post[2], post[3], post[4], post[5])
         item['value'] = post[0]
         display.append(item)
     _SEARCH_FORM[0]['choices'] = display

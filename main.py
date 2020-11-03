@@ -11,8 +11,9 @@ if __name__ == "__main__":
         #use given name for database
         database.init_db(argv[1])
     except IndexError:
-        #if one not given, use default name
-        database.init_db('db/prj1.db')
+        # If not given then display an error
+        print("Error: No database path provided as an argument")
+        exit()
     while True:
         #logs in or registers user, and gets their session
         session = handle_login(database)

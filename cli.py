@@ -40,7 +40,7 @@ _TAG_FORM = [
     {
         'type': 'input',
         'name': 'tag',
-        'message': 'Tag'
+        'message': 'Tags (seperated by \';\')'
     },
 ]
 
@@ -94,7 +94,7 @@ _MASTER_MENU =[
 _FORCE_MARK_ANSWER_FORM = [
     {
         'type': 'confirm',
-        'name': 'force_overwrite',
+        'name': 'force',
         'message': 'Question already has an accepted answer, do you want to overwrite?',
         'default' : False
     }
@@ -277,7 +277,7 @@ def put_search_list(posts, empty):
         _SEARCH_FORM[0]['choices'].append({'name':'Next Page', 'value': '+'})
     return prompt(_SEARCH_FORM)['post']
 
-def action_menu_select(show_priviledged_actions, show_answer_actions):
+def action_menu_select(show_privileged_actions, show_answer_actions):
     """A user is looking at a post. This prompts the user to decide what 
     to do with the post.
 
@@ -294,14 +294,14 @@ def action_menu_select(show_priviledged_actions, show_answer_actions):
     if not show_answer_actions:
         #if it's not an answer, it's a question and thus can be answered
         _ACTION_MENU[0]['choices'].append('Post an answer')
-
-    if show_priviledged_actions:
+    
+    if show_privileged_actions:
         #if user is privileged
         if show_answer_actions:
             #and it's an answer
-            _ACTION_MENU['choices'].append('Mark as accepted answer') #can marks an answer as the answer
+            _ACTION_MENU[0]['choices'].append('Mark as accepted answer') #can marks an answer as the answer
         #privileged users can give a badge, add a tag, or edit the post
-        _ACTION_MENU['choices'].extend(
+        _ACTION_MENU[0]['choices'].extend(
             [
                 'Give a badge',
                 'Add a tag',
@@ -321,7 +321,7 @@ def choose_badge(badge_list):
 
     Returns:
         String: Returns a string of the badge name
-    """    
+    """
     _BADGE_MENU[0]['choices'] = badge_list
     return prompt(_BADGE_MENU)["badge"]
 
@@ -329,7 +329,9 @@ def request_tag():
     """Prompts user to enter a tag that will be assigned to a post
 
     Returns:
-        String: Returns a string of the tag that was chosen
+        list(str): Returns a list of strings of the tags that was input
     """    
-    return prompt(_TAG_FORM)['tag']
-
+    tags = prompt(_TAG_FORM)['tag'].split(';')
+    for i in range(len(tags)):
+        tags[i] = tags[i].strip()
+    return tags

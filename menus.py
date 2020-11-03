@@ -14,7 +14,7 @@ def handle_submenu(session, database, pid):
         session (UserSession): Relevantly, contains uid of logged in user, and if user is privileged
         database (Database): The database. Necessary for all of these options
         pid (String): The pid of the post that's been selected
-    """    
+    """
     option = cli.action_menu_select(session.is_privileged(), database.is_answer(pid))
     if option == 'Post an answer': #post an answer to question pid
         post_answer(pid, session, database)
@@ -48,11 +48,11 @@ def vote_post(pid, session, database):
         session (UserSession): Relevantly ,contains uid of logged in user
         database (Database): The database. Stores vote in database
     """    
-    voted = database.vote_post(session, pid)
-    if voted: #voted was set to 1 if the user has already upvoted this post
-        print('Cannot Vote : Already Voted on Post')
-    else: #otherwise, vote goes through
+    success = database.vote_post(session, pid)
+    if success: #voted was set to 1 if the user has already upvoted this post
         print('Vote Recorded')
+    else: #otherwise, vote goes through
+        print('Cannot Vote : Already Voted on Post')
 
 def mark_accepted_answer(pid, database):
     """Sets pid to be the accepted answer. If the question already has an accepted answer
@@ -74,8 +74,11 @@ def give_badge(pid, database):
         database (Database): The database. Updates user's badges
     """    
     badge_names = database.get_badge_list() #gets all badge names from database
-    chosen_name = cli.choose_badge(badge_names) #gets user to pick one of them
-    database.give_badge(pid, chosen_name) #then gives that badge to the user who wrote the post
+    if len(badge_names) > 0:
+        chosen_name = cli.choose_badge(badge_names) #gets user to pick one of them
+        database.give_badge(pid, chosen_name) #then gives that badge to the user who wrote the post
+    else:
+        print("Sorry, there are no registered badges")
 
 def add_tag(pid, database):
     """Prompts user for a tag and applies it to the post
@@ -83,12 +86,9 @@ def add_tag(pid, database):
     Args:
         pid (String): The id of the selected post
         database (Database): The database. Updates tags of a post
-    """    
-    tagged = database.add_tag(pid, cli.request_tag())
-    if tagged: #tagged gets set to 1 if the post already has this tag
-        print('Tag Already Applied')
-    else: #otherwise it goes through
-        print('Tag Recorded')
+    """
+    for tag in cli.request_tag():
+        database.add_tag(pid, tag)
 
 def edit_post(pid, database):
     """Prompts user to edit the body and title of selected post

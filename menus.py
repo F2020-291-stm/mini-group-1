@@ -13,7 +13,7 @@ def handle_submenu(session, database, pid):
     option = cli.action_menu_select(session.is_privileged(), database.is_answer(pid))
     if option == 'Post an answer': #post an answer to question pid
         post_answer(pid, session, database)
-    elif option == 'Vote on post': #upvote the post pid
+    elif option == 'Upvote': #upvote the post pid
         vote_post(pid, session, database)
     elif option == 'Mark as accepted answer': #mark pid as the accepted answer
         mark_accepted_answer(pid, database)
@@ -31,8 +31,8 @@ def post_answer(qid, session, database):
 
 def vote_post(pid, session, database):
     #upvotes the post
-    voted = database.vote_post(session, pid)
-    if voted: #voted was set to 1 if the user has already upvoted this post
+    success = database.vote_post(session, pid)
+    if not success: #user has already upvoted this post
         print('Cannot Vote : Already Voted on Post')
     else: #otherwise, vote goes through
         print('Vote Recorded')
@@ -54,12 +54,9 @@ def give_badge(pid, database):
     database.give_badge(pid, chosen_name)
 
 def add_tag(pid, database):
-    #asks user for a tag and puts that tag onto a post
-    tagged = database.add_tag(pid, cli.request_tag())
-    if tagged: #tagged gets set to 1 if the post already has this tag
-        print('Tag Already Applied')
-    else: #otherwise it goes through
-        print('Tag Recorded')
+    #asks user for tags and tags the post with each one
+    for tag in cli.request_tag():
+        database.add_tag(pid, tag)
 
 def edit_post(pid, database):
     post = database.get_post(pid)

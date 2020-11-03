@@ -1,14 +1,47 @@
 import sqlite3
 from datetime import date
-from base64 import b64decode, b64encode
+from random import randint
 import os
 import re
-from string import ascii_lowercase, digits
 
 def _instr_nocase(X, Y):
     if re.search(Y, X, re.IGNORECASE) is not None:
         return 1
     return 0
+
+def _next_lexical_char(character):
+    if '0' <= character < '9':
+        return str(int(character) + 1)
+    elif character == '9':
+        return 'A'
+    elif 'A' <= character < 'Z' or 'a' <= character < 'z':
+        return chr(ord(character) + 1)
+    elif character == 'Z':
+        return 'a'
+    elif character == 'z':
+        return '0'
+
+def _prev_lexical_char(character):
+    if '0' < character <= '9':
+        return str(int(character) - 1)
+    elif character == '0':
+        return 'z'
+    elif 'A' < character <= 'Z' or 'a' < character <= 'z':
+        return chr(ord(character) - 1)
+    elif character == 'A':
+        return '9'
+    elif character == 'a':
+        return 'A'
+
+def _gen_random_char():
+    value = randint(0, 9 + 2*(ord('Z') - ord('A')))
+    if value <= 9:
+        return str(value)
+    elif 9 < value <= 9 + ord('Z') - ord('A'):
+        return chr(value - 9 + ord('A'))
+    elif 9 + ord('Z') - ord('A') < value:
+        return chr(value - 9 + ord('Z') - ord('A') + ord('a'))
+
 
 class Database:
     def init_db(self, path):
@@ -60,7 +93,7 @@ class Database:
             WHERE uid = ?
             COLLATE NOCASE
             ''',
-            (username)
+            (username,)
             )
             session = UserSession(username, privileged = self.cursor.fetchone() is not None)
             session._activate()
@@ -74,7 +107,7 @@ class Database:
             WHERE uid = ?
             COLLATE NOCASE
             ''',
-            (username)
+            (username,)
         )
         return self.cursor.fetchone()
 
@@ -107,7 +140,7 @@ class Database:
             insert into questions(pid)
             values (?)
             ''', 
-            (pid)
+            (pid,)
         )
 
     def get_post(self, pid):
@@ -119,7 +152,7 @@ class Database:
             WHERE pid = ?
             COLLATE NOCASE
             ''',
-            (pid)
+            (pid,)
         )
         return self.cursor.fetchone()
 
@@ -148,7 +181,7 @@ class Database:
         self.cursor.execute(
             '''
             INSERT INTO posts(pid, pdate, title, body, poster)
-            VALUES (?,?,?,?,?) 
+            VALUES (?,?,?,?,?)
             ''',
             (pid, date.today(), title, body, session.get_uid())
         )
@@ -182,11 +215,10 @@ class Database:
                 '''
             )
             #set vno of this new vote to the biggest vno+1
-            vno = self.cursor.fetchone()[0]
-            if vno is None:
-                vno = 0
-            else:
-                vno = vno + 1
+            vno = 0
+            max_vno = self.cursor.fetchone()
+            if vno is not None:
+                vno = max_vno[0] + 1
             #and now apply this vote to the database          
             self.cursor.execute(
                 '''
@@ -195,9 +227,9 @@ class Database:
                 ''',
                 (pid, vno, date.today(), session.get_uid())
             )
-            return 0 #upon successful vote, return 0
+            return True #upon successful vote
         else:
-            return 1 #upon unsuccessful vote, return 1
+            return False #upon unsuccessful vote
     
     def mark_accepted_answer(self, aid, force=False):
         #finds the question and checks if it is already answered 
@@ -209,7 +241,7 @@ class Database:
             AND q.pid = a.qid
             AND q.theaid IS NOT NULL
             ''',
-            (aid)
+            (aid,)
         )
         if (not force and self.cursor.fetchone() is not None):
             #if the question already has a "the answer", then this answer cannot become
@@ -220,8 +252,8 @@ class Database:
             '''
             UPDATE questions
             SET theaid = ?
-            WHERE pid = SOME (
-                SELECT 
+            WHERE pid IN (
+                SELECT qid
                 FROM answers a
                 WHERE a.pid = ?
             )
@@ -276,7 +308,7 @@ class Database:
             WHERE tag = ?
             COLLATE NOCASE
             ''',
-            (tag)
+            (tag,)
         )
         if (self.cursor.fetchone() is None):
             #if it hasn't been tagged with this tag, then tag it
@@ -287,28 +319,69 @@ class Database:
                 ''',
                 (pid, tag)
             )
-            return 0 #return a 0 to signify a success
-        
-        return 1 #otherwise do nothing and return 1 to signify a failure
 
     
     def generate_pid(self):
         self.cursor.execute(
             '''
-            SELECT MAX(pid) + 1
-            FROM posts   
+            SELECT MAX(pid)
+            FROM posts
             '''
         )
-        # TODO handle overflows and non-integer post ids
-        pid = self.cursor.fetchone()[0]
-        # if pid is None:
-        #     pid = str(0)
-        # else:
-        #     pid = b64encode(int.from_bytes(b64decode((pid))), 'big' + 1)
+        max_pid = self.cursor.fetchone()[0]
+        if max_pid is None:
+            max_pid = str(0)
+
+        self.cursor.execute(
+            '''
+            SELECT MIN(pid)
+            FROM posts
+            '''
+        )
+        min_pid = self.cursor.fetchone()[0]
+        if min_pid is None:
+            min_pid = max_pid
+        
+        if max_pid != 'zzzz':
+            pid = max_pid
+            next_char = '0'
+            i = 0
+            while next_char == '0' and i < 4:
+                next_char = _next_lexical_char(pid[i])
+                pid = pid[0:i] + next_char + pid[i + 1:4]
+                i = i + 1
+        elif min_pid != '0':
+            pid = max_pid
+            next_char = 'z'
+            i = 0
+            while next_char == 'z' and i < 4:
+                next_char = _prev_lexical_char(pid[i])
+                pid = pid[0:i] + next_char + pid[i + 1:4]
+                i = i + 1
+        else:
+            # We have no idea what values are free and what ones aren't
+            # Probably our best option would be to have a set of all possible PIDs
+            # and what ones are used and subtract one from the other to figure
+            # out what values are available, but that could take a while so..... randomness it is
+            pid = '0000'
+            unique = False
+            while (not unique):
+                pid[0] = _gen_random_char()
+                pid[1] = _gen_random_char()
+                pid[2] = _gen_random_char()
+                pid[3] = _gen_random_char()
+                self.cursor.execute(
+                    '''
+                    SELECT *
+                    FROM posts
+                    WHERE pid = ?
+                    ''',
+                    (pid,)
+                )
+                if cursor.fetchone() is None:
+                    unique = True
+
         return pid
-    
-    def get_next_lex(self, str):
-        from string import ascii_lowercase, digits
     
     def is_answer(self, pid):
         self.cursor.execute(
@@ -317,7 +390,7 @@ class Database:
             FROM answers
             WHERE pid = ?
             ''',
-            (pid)
+            (pid,)
         )
         if self.cursor.fetchone() is not None:
             return True
@@ -350,19 +423,3 @@ class UserSession:
 
     def get_uid(self):
         return self.uid
-        
-def get_next_lex(string1):
-    string = string1.lower()
-    done = False
-    lex_order = ascii_lowercase + digits
-    if string is None or len(string) == 0:
-        return lex_order[0]
-    for index in range(len(string) - 1, -1, -1):
-        if string[index] != lex_order[-1]:
-            done = True
-            break
-    if not done:
-        return string + lex_order[0]
-    for index1 in range(len(lex_order)):
-        if string[index] == lex_order[index1]:
-            return string[:index]+lex_order[index1+1]+string[index + 1:]    

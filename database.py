@@ -134,7 +134,9 @@ class Database:
             ''',
             (username,)
         )
-        return self.cursor.fetchone()
+        if self.cursor.fetchone() is None:
+            return False
+        return True
 
     def register(self, username, password, name, city):
         """Enters a user into the database. Initiates a session for this user
@@ -150,6 +152,8 @@ class Database:
             [UserSession]: A session for the user created
         """        
         try:
+            if self.check_username(username):
+                raise sqlite3.IntegrityError
             self.cursor.execute(
                 '''
                 INSERT INTO users(uid, name, pwd, city, crdate)

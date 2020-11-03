@@ -13,7 +13,7 @@ if __name__ == "__main__":
     except IndexError:
         # If not given then display an error
         print("Error: No database path provided as an argument")
-        exit()
+        exit(0)
     while True:
         #logs in or registers user, and gets their session
         session = handle_login(database)

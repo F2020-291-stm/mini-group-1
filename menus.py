@@ -126,13 +126,20 @@ def handle_login(database):
                 if(cli.quit_login()):
                     sys.exit(0)
         else:
-            # Register 
+            # Register
+            alphanum = True
+            session = None 
             info = cli.register_info()
-            session = database.register(info['username'], info['password'], info['name'], info['city'])
+            if info['username'].isalnum() and info['password'].isalnum():
+                session = database.register(info['username'], info['password'], info['name'], info['city'])
+            else:
+                alphanum = False
             if session is not None:
                 print("Registered successfully")
                 return session
             else:
+                if not alphanum:
+                    print('Username and Password must be alphanumeric')
                 if(cli.quit_login()):
                     sys.exit(0)
 

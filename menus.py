@@ -139,7 +139,7 @@ def handle_login(database):
                 return session
             else:
                 if not alphanum:
-                    print('Username and Password must be alphanumeric')
+                    print('Error: Username and Password must be alphanumeric')
                 if(cli.quit_login()):
                     sys.exit(0)
 

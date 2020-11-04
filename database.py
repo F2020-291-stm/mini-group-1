@@ -137,28 +137,6 @@ class Database:
             session._activate()
             return session
 
-    def check_username(self, username):
-        """Checks if username exists in the database.
-
-        Args:
-            username (String): A string containing the username
-
-        Returns:
-            Boolean: Returns 1 if the user exists, 0 if not
-        """        
-        self.cursor.execute(
-            '''
-            SELECT COUNT(*) > 0
-            FROM users
-            WHERE uid = ?
-            COLLATE NOCASE
-            ''',
-            (username,)
-        )
-        if self.cursor.fetchone() is None:
-            return False
-        return True
-
     def register(self, username, password, name, city):
         """Enters a user into the database. Initiates a session for this user
         If user already exists, then complains and doesn't allow it. 
@@ -173,8 +151,6 @@ class Database:
             UserSession: A session for the user created
         """        
         try:
-            if self.check_username(username):
-                raise sqlite3.IntegrityError
             self.cursor.execute(
                 '''
                 INSERT INTO users(uid, name, pwd, city, crdate)

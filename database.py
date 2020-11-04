@@ -5,14 +5,14 @@ import os
 import re
 
 def _instr_nocase(X, Y):
-    """[summary]
+    """Sees if one string is inside the other ignoring case
 
     Args:
-        X ([type]): [description]
-        Y ([type]): [description]
+        X (str): String to find in Y
+        Y (str): String to check in
 
     Returns:
-        [type]: [description]
+        boolean: whether or not X is in Y
     """    
 
     if X is None or Y is None:
@@ -22,6 +22,14 @@ def _instr_nocase(X, Y):
     return 0
 
 def _next_lexical_char(character):
+    """Gets the next character in lexical order
+
+    Args:
+        character (str): char to find next from
+
+    Returns:
+        str: next lexical char
+    """    
     if '0' <= character < '9':
         return str(int(character) + 1)
     elif character == '9':
@@ -34,6 +42,14 @@ def _next_lexical_char(character):
         return '0'
 
 def _prev_lexical_char(character):
+    """Gets the previous character in lexical order
+
+    Args:
+        character (str): char to find previous from
+
+    Returns:
+        str: previous lexical char
+    """  
     if '0' < character <= '9':
         return str(int(character) - 1)
     elif character == '0':
@@ -46,13 +62,18 @@ def _prev_lexical_char(character):
         return 'A'
 
 def _gen_random_char():
+    """Generates a random character in range [A-Za-z0-9]
+
+    Returns:
+        str: random character
+    """  
     value = randint(0, 9 + 2*(ord('Z') - ord('A')))
     if value <= 9:
         return str(value)
     elif 9 < value <= 9 + ord('Z') - ord('A'):
         return chr(value - 9 + ord('A'))
     elif 9 + ord('Z') - ord('A') < value:
-        return chr(value - 9 + ord('Z') - ord('A') + ord('a'))
+        return chr(value - 9 - ord('Z') + ord('A') + ord('a'))
 
 
 class Database:
@@ -149,7 +170,7 @@ class Database:
             city (String): A straining containing the city name
 
         Returns:
-            [UserSession]: A session for the user created
+            UserSession: A session for the user created
         """        
         try:
             if self.check_username(username):
@@ -229,14 +250,13 @@ class Database:
         )
     
     def search_posts(self, keyword_list):
-        #TODO
-        """[summary]
+        """Searches all posts and returns them
 
         Args:
-            keyword (String): Given keyword for the search
+            keyword_list (String[]): Given keyword for the search
 
         Returns:
-            [type]: [description]
+            String[]: List of posts
         """
         query = "SELECT p.pid AS pid\nFROM(\n"
         first = True
@@ -465,6 +485,7 @@ class Database:
         Returns:
             String: The generated pid
         """
+        # Get maximum and minimum pids
         self.cursor.execute(
             '''
             SELECT MAX(pid)
@@ -485,34 +506,37 @@ class Database:
         if min_pid is None:
             min_pid = max_pid
         
+        # If we haven't reached the max value increment
         if max_pid != 'zzzz':
             pid = max_pid
             next_char = '0'
             i = 0
             while next_char == '0' and i < 4:
                 next_char = _next_lexical_char(pid[i])
-                pid = pid[0:i] + next_char + pid[i + 1:4]
+                pid = pid[0:i] + next_char + pid[i + 1:]
                 i = i + 1
+        # If we haven't reached the min value decriment
         elif min_pid != '0':
-            pid = max_pid
+            pid = min_pid
             next_char = 'z'
-            i = 0
-            while next_char == 'z' and i < 4:
+            i = len(pid) - 1
+            while next_char == 'z' and i >= 0:
                 next_char = _prev_lexical_char(pid[i])
-                pid = pid[0:i] + next_char + pid[i + 1:4]
-                i = i + 1
+                pid = pid[0:i] + next_char + pid[i + 1:]
+                i = i - 1
         else:
             # We have no idea what values are free and what ones aren't
             # Probably our best option would be to have a set of all possible PIDs
             # and what ones are used and subtract one from the other to figure
             # out what values are available, but that could take a while so..... randomness it is
-            pid = '0000'
+            pid = [None] * 4
             unique = False
             while (not unique):
                 pid[0] = _gen_random_char()
                 pid[1] = _gen_random_char()
                 pid[2] = _gen_random_char()
                 pid[3] = _gen_random_char()
+                pid = "".join(pid)
                 self.cursor.execute(
                     '''
                     SELECT *
@@ -521,7 +545,7 @@ class Database:
                     ''',
                     (pid,)
                 )
-                if cursor.fetchone() is None:
+                if self.cursor.fetchone() is None:
                     unique = True
 
         return pid

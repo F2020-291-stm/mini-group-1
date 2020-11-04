@@ -1,6 +1,7 @@
 from sys import argv
 from PyInquirer import prompt
 from sqlite3 import connect
+from os.path import exists
 
 ACTION_PROMPT = [
     {
@@ -56,26 +57,28 @@ NEW_BADGE_PROMPT = [
 
 
 def choose_user(user_names):
-    """
-    docstring
+    """ Prompt the user to choose a username
     """
     # Replace the user list
     USER_PROMPT[0]["choices"] = user_names
     return prompt(USER_PROMPT)["user"]
 
 def choose_badge(badges):
-    """
-    docstring
+    """ Prompt the user to choose a badge name
     """
     # Replace the badge list
     REMOVE_BADGE_PROMPT[0]["choices"] = badges
     return prompt(REMOVE_BADGE_PROMPT)["badge"]
 
 def choose_new_badge():
+    """ Prompt the user to create a new badge name
+    """
     return prompt(NEW_BADGE_PROMPT)
 
 
 def get_privileged_users(database):
+    """ Get all privileged users from the database
+    """
     database.execute(
         '''
         SELECT u.uid
@@ -89,6 +92,8 @@ def get_privileged_users(database):
     return users
 
 def get_non_privileged_users(database):
+    """ Get all non prvileged users from the database
+    """
     database.execute(
         '''
         SELECT uid
@@ -106,6 +111,8 @@ def get_non_privileged_users(database):
     return users
 
 def get_badges(database):
+    """ Get all badges
+    """
     database.execute(
         '''
         SELECT bname
@@ -118,6 +125,8 @@ def get_badges(database):
     return badges
 
 def remove_badge(database, bname):
+    """ Remove a badge from the database
+    """
     database.execute(
         '''
         DELETE FROM badges
@@ -127,6 +136,8 @@ def remove_badge(database, bname):
     )
 
 def add_badge(database, bname, btype):
+    """ Add a badge to the database
+    """
     database.execute(
         '''
         INSERT INTO badges (bname, type)
@@ -136,6 +147,8 @@ def add_badge(database, bname, btype):
     )
 
 def add_privilege(database, uid):
+    """ Add a user to the privileged list
+    """
     database.execute(
         '''
         INSERT INTO privileged (uid)
@@ -145,6 +158,8 @@ def add_privilege(database, uid):
     )
 
 def remove_privilege(database, uid):
+    """ Remove a user from the privileged list
+    """
     database.execute(
         '''
         DELETE FROM privileged
@@ -155,9 +170,14 @@ def remove_privilege(database, uid):
 
 
 if __name__ == "__main__":
+    # Init database connection (set to auto commit)
+    if not exists(argv[1]):
+        print("Database is not initialized yet, run main.py first before using admin panel")
+        exit(1)
     database = connect(argv[1], isolation_level=None)
     cursor = database.cursor()
     while True:
+        # Primpt the user for an action and handle the appropriate action
         action = prompt(ACTION_PROMPT)["action"]
         if (action == "Add Privileged User"):
             uid = choose_user(get_non_privileged_users(cursor))

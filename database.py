@@ -246,7 +246,7 @@ class Database:
                 query += "\nUNION ALL\n"
             else:
                 first = False
-            query +="SELECT p.pid AS pid, " + str(index) +" AS filter\nFROM posts p\nLEFT JOIN tags t\nON p.pid = t.pid \nWHERE (INSTRNOCASE(p.title,'"+ keyword +"') > 0\nOR INSTRNOCASE(p.body,'" + keyword + "') > 0\nOR INSTRNOCASE(t.tag,'" + keyword + "') > 0)"
+            query +="SELECT p.pid AS pid\nFROM posts p\nLEFT JOIN tags t\nON p.pid = t.pid \nWHERE (INSTRNOCASE(p.title,'"+ keyword +"') > 0\nOR INSTRNOCASE(p.body,'" + keyword + "') > 0\nOR INSTRNOCASE(t.tag,'" + keyword + "') > 0)"
         query +=") p\nGROUP BY pid\nORDER BY COUNT(*) DESC;"
         self.cursor.execute(query)
         return self.get_post_info(self.cursor.fetchall())

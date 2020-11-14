@@ -252,7 +252,7 @@ class Database:
             return None
         query = ""
         for index in range(len(posts)):
-            query += "SELECT *," + str(index) + " AS filter FROM posts WHERE pid =" + posts[index][0]
+            query += "SELECT *," + str(index) + " AS filter FROM posts WHERE pid ='" + posts[index][0] + "'"
             if index != len(posts)-1:
                 query += "\nUNION ALL\n"
         query+="\nORDER BY filter"

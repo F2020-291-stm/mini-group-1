@@ -407,7 +407,7 @@ class Database:
             From posts
             Where pid = ?
             ''',
-            (pid)
+            (pid,)
         )
         uid = self.cursor.fetchone()[0]
 
